@@ -1,5 +1,5 @@
 
-A WooCommerce alapértelmezetten 6 típusú egyedi mezőt támogat úgynevezett built in módon. 
+## A WooCommerce alapértelmezetten 6 típusú egyedi mezőt támogat úgynevezett built in módon. 
 
 * Text
 * Textarea
@@ -8,6 +8,10 @@ A WooCommerce alapértelmezetten 6 típusú egyedi mezőt támogat úgynevezett 
 * Radio
 * Select (dropdown)
 
+## Speciális mezők
+
+* Multiple select
+* Dátum választás (HTML 5)
 
 ## A mezők létrehozásakor úgynevezett attributumok segítségével tudjuk meghatározni az egyes tulajdonságokat.
 
@@ -309,3 +313,67 @@ function display_custom_multiple_select_labels() {
 }
 add_shortcode( 'custom_multiple_select_labels', 'display_custom_multiple_select_labels' );
 ```
+
+### Dátum alapú mező
+Némi átalakításnak köszönhetően készíthetsz dátumválasztó meta mezőt is
+
+```
+add_action( 'woocommerce_product_options_general_product_data', 'add_custom_date_field' );
+function add_custom_date_field() {
+    woocommerce_wp_text_input( array(
+        'id'          => '_custom_product_date',
+        'label'       => __('Custom Date', 'woocommerce'),
+        'placeholder' => __('YYYY-MM-DD', 'woocommerce'),
+        'type'        => 'date',
+    ));
+}
+```
+
+Egyszerű mentés:
+
+```
+add_action( 'woocommerce_process_product_meta', 'save_custom_date_field' );
+function save_custom_date_field( $post_id ) {
+    if ( isset( $_POST['_custom_product_date'] ) ) {
+        $date_value = sanitize_text_field( $_POST['_custom_product_date'] );
+        update_post_meta( $post_id, '_custom_product_date', $date_value );
+    }
+}
+```
+
+A Dátum mező esetében használhatunk timestamp / unix kódolásos mentést, ez hasznos lehet bizonyos esetekben, ilyenkor mind a mező mind a mentést átkell alakítanunk
+
+```
+add_action( 'woocommerce_product_options_general_product_data', 'add_custom_date_field' );
+function add_custom_date_field() {
+    global $post;
+
+    // Lekérjük a mentett időbélyeget és átalakítjuk dátummá
+    $date_value = get_post_meta( $post->ID, '_custom_product_date', true );
+    $date_value = !empty($date_value) ? date('Y-m-d', $date_value) : '';
+
+    woocommerce_wp_text_input( array(
+        'id'            => '_custom_product_date',
+        'label'         => __('Custom Date', 'woocommerce'),
+        'placeholder'   => __('YYYY-MM-DD', 'woocommerce'),
+        'type'          => 'date',
+        'value'         => $date_value, // Itt adjuk meg a konvertált dátumot
+    ));
+}
+```
+
+Időbélyeges mentés:
+
+```
+add_action( 'woocommerce_process_product_meta', 'save_custom_date_field' );
+function save_custom_date_field( $post_id ) {
+    if ( isset( $_POST['_custom_product_date'] ) ) {
+        // Konvertáljuk a dátumot Unix időbélyeggé
+        $date_value = strtotime( sanitize_text_field( $_POST['_custom_product_date'] ) );
+
+        // Mentjük az időbélyeget a termék metaadataként
+        update_post_meta( $post_id, '_custom_product_date', $date_value );
+    }
+}
+```
+
