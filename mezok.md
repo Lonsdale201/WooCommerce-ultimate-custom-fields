@@ -32,3 +32,26 @@ function add_custom_text_field() {
 * DESCRIPTION    -> A mező leírása, ami a mező alatt jelenik meg, vagy tooltip *true* esetében a tooltipben.
 * TYPE           -> Itt határozod meg a mező típusát.
 * DEFAULT        -> Legyen-e alapértelmezett érték megadva, ha nem hagy '' üresen.
+
+Ha kész az egyedi mezőnk, gondoskodnunk kell arról, hogy ezt megfelelően kezeljük, és mentsük az adatbázisban
+
+```
+add_action( 'woocommerce_process_product_meta', 'save_custom_text_field' );
+function save_custom_text_field( $post_id ) {
+    if ( isset( $_POST['_custom_product_text_field'] ) ) {
+        $custom_field_value = sanitize_text_field( $_POST['_custom_product_text_field'] );
+        
+        // Ha a mező üres, töröljük a metaadatot
+        if ( empty( $custom_field_value ) ) {
+            delete_post_meta( $post_id, '_custom_product_text_field' );
+        } else {
+            // Ha van érték, frissítjük a metaadatot
+            update_post_meta( $post_id, '_custom_product_text_field', $custom_field_value );
+        }
+    } else {
+        // Ha a mező nem létezik, töröljük a metaadatot
+        delete_post_meta( $post_id, '_custom_product_text_field' );
+    }
+}
+```
+
