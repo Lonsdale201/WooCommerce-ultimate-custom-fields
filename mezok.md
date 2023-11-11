@@ -9,7 +9,7 @@ A WooCommerce alapértelmezetten 6 típusú egyedi mezőt támogat úgynevezett 
 A mezők létrehozásakor úgynvezett attributumok segítségével tudjuk meghatározni az egyes tulajdonságokat.
 
 **Példa:**
-
+```
 add_action( 'woocommerce_product_options_general_product_data', 'add_custom_text_field' );
 function add_custom_text_field() {
     woocommerce_wp_text_input( array(
@@ -22,3 +22,4 @@ function add_custom_text_field() {
         'default'     => '', 
     ));
 }
+```
