@@ -54,7 +54,7 @@ function display_packaging_fee_on_product_page() {
     }
 }
 
-// ha nem jelenik meg a page builder miatt használd ezt a woocommerce_single_product_summary helyett
+// ha nem jelenik meg a page builder miatt használd ezt a woocommerce_single_product_summary helyett és az előzőt töröld ki.
 
 add_action( 'woocommerce_before_add_to_cart_form', 'display_packaging_fee_above_add_to_cart_button' );
 function display_packaging_fee_above_add_to_cart_button() {
