@@ -59,6 +59,21 @@ function save_custom_text_field( $post_id ) {
 
 ## Példa az összes típusú meta mezőre:
 
+### Textarea típusú meta mező
+
+```
+add_action( 'woocommerce_product_options_general_product_data', 'add_custom_textarea_field' );
+function add_custom_textarea_field() {
+    woocommerce_wp_textarea_input( array(
+        'id'          => '_custom_product_textarea',
+        'label'       => __('Custom Textarea', 'woocommerce'),
+        'placeholder' => __('Enter details here', 'woocommerce'),
+        'description' => __('This is a custom textarea field.', 'woocommerce'),
+    ));
+}
+```
+
+
 ### Number (szám) típusú meta mező
 
 ```
