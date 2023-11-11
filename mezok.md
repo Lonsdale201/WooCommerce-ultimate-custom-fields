@@ -1,5 +1,6 @@
 
 A WooCommerce alapértelmezetten 6 típusú egyedi mezőt támogat úgynevezett built in módon. 
+
 * Text
 * Textarea
 * Number
@@ -7,7 +8,7 @@ A WooCommerce alapértelmezetten 6 típusú egyedi mezőt támogat úgynevezett 
 * Radio
 * Select (dropdown)
 
-A mezők létrehozásakor úgynvezett attributumok segítségével tudjuk meghatározni az egyes tulajdonságokat.
+## A mezők létrehozásakor úgynevezett attributumok segítségével tudjuk meghatározni az egyes tulajdonságokat.
 
 **Példa:**
 ```
@@ -24,6 +25,7 @@ function add_custom_text_field() {
     ));
 }
 ```
+A példa kód egy egyszerű text meta mezőt fog létrehozni, amely közvetlenül a **Álatalános** tabfülön az árak alatt jelenik meg. A poziciót, és hogy melyik tabfülbe szeretnénk elhelyezni, vagy esetleg egy teljesen újban szintén lehetséges.
 
 * ID             -> Ez lesz a meta azonosítója, nem tartalmazhat speciális karaktereket vagy ékezetet. Minden meződnek eltérő azonosítóval kell rendelkeznie.
 * LABEL          -> Ez lesz a mező címkéje, neve ami megjelenik az egyedi mező felett.
@@ -55,3 +57,68 @@ function save_custom_text_field( $post_id ) {
 }
 ```
 
+## Példa az összes típusú meta mezőre:
+
+### Number (szám) típusú meta mező
+
+```
+add_action( 'woocommerce_product_options_general_product_data', 'add_custom_number_field' );
+function add_custom_number_field() {
+    woocommerce_wp_text_input( array(
+        'id'          => '_custom_product_number_field',
+        'label'       => __('Custom Number Field', 'woocommerce'),
+        'placeholder' => __('Enter a number', 'woocommerce'),
+        'description' => __('This is a custom number field.', 'woocommerce'),
+        'type'        => 'number',
+        'custom_attributes' => array(
+            'step'  => 'any',
+            'min'   => '0'
+        )
+    ));
+}
+```
+
+### Checkbox (jelölőnégyzet) típusú meta mező
+
+```
+add_action( 'woocommerce_product_options_general_product_data', 'add_custom_checkbox_field' );
+function add_custom_checkbox_field() {
+    woocommerce_wp_checkbox( array(
+        'id'          => '_custom_product_checkbox',
+        'label'       => __('Custom Checkbox', 'woocommerce'),
+        'description' => __('Check this box for custom option.', 'woocommerce')
+    ));
+}
+```
+
+### Select (dropdown) típusú meta mező
+
+```
+add_action( 'woocommerce_product_options_general_product_data', 'add_custom_select_field' );
+function add_custom_select_field() {
+    woocommerce_wp_select( array(
+        'id'          => '_custom_product_select',
+        'label'       => __('Custom Select', 'woocommerce'),
+        'options'     => array(
+            ''        => __('Please select', 'woocommerce'),
+            'option1' => __('Option 1', 'woocommerce'),
+            'option2' => __('Option 2', 'woocommerce')
+        )
+    ));
+}
+```
+
+### Radio (Rádió gombok) típusú meta mező
+
+```
+add_action( 'woocommerce_product_options_general_product_data', 'add_custom_radio_buttons' );
+function add_custom_radio_buttons() {
+    echo '<div class="options_group">';
+    echo '<p class="form-field _custom_product_radio_field">';
+    echo '<label>' . __('Custom Radio Buttons', 'woocommerce') . '</label>';
+    echo '<input type="radio" name="_custom_product_radio" value="option1"> ' . __('Option 1', 'woocommerce') . '<br>';
+    echo '<input type="radio" name="_custom_product_radio" value="option2"> ' . __('Option 2', 'woocommerce');
+    echo '</p>';
+    echo '</div>';
+}
+```
