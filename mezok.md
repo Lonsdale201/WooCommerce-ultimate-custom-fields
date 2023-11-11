@@ -98,11 +98,29 @@ function add_custom_number_field() {
 ```
 add_action( 'woocommerce_product_options_general_product_data', 'add_custom_checkbox_field' );
 function add_custom_checkbox_field() {
+    global $post;
+
+    // Lekérjük a mentett értéket
+    $checkbox_value = get_post_meta( $post->ID, '_custom_product_checkbox', true );
+
     woocommerce_wp_checkbox( array(
         'id'          => '_custom_product_checkbox',
         'label'       => __('Custom Checkbox', 'woocommerce'),
-        'description' => __('Check this box for custom option.', 'woocommerce')
+        'description' => __('Check this box for custom option.', 'woocommerce'),
+        'value'       => $checkbox_value,
+        'cbvalue'     => 'yes',
+        'checked'     => ( $checkbox_value === 'yes' ) ? 'checked' : ''
     ));
+}
+```
+
+A Checkbox és a radio speciálisabb, mivel itt is kezelni kell a bejelölt értéket. Így a mentés a következő:
+
+```
+add_action( 'woocommerce_process_product_meta', 'save_custom_checkbox_field' );
+function save_custom_checkbox_field( $post_id ) {
+    $checkbox_value = isset( $_POST['_custom_product_checkbox'] ) ? 'yes' : 'no';
+    update_post_meta( $post_id, '_custom_product_checkbox', $checkbox_value );
 }
 ```
 
@@ -122,6 +140,21 @@ function add_custom_select_field() {
     ));
 }
 ```
+Mentés:
+
+```
+add_action( 'woocommerce_process_product_meta', 'save_custom_select_field' );
+function save_custom_select_field( $post_id ) {
+    // Ellenőrizzük, hogy a select mező értéke be van-e állítva
+    if ( isset( $_POST['_custom_product_select'] ) ) {
+        // Tisztítás
+        $select_value = sanitize_text_field( $_POST['_custom_product_select'] );
+
+        // Frissítsük a termék metaadatát a kiválasztott értékkel
+        update_post_meta( $post_id, '_custom_product_select', $select_value );
+    }
+}
+```
 
 ### Radio (Rádió gombok) típusú meta mező
 
@@ -130,7 +163,7 @@ add_action( 'woocommerce_product_options_general_product_data', 'add_custom_radi
 function add_custom_radio_buttons() {
     global $post;
 
-    // Lekérjük a mentett értéket
+    // Lekérjük a mentett értéket - lokális változó
     $saved_value = get_post_meta( $post->ID, '_custom_product_radio', true );
 
     // Rádiógombok megjelenítése
@@ -150,7 +183,6 @@ A Radiogombok esetében van némi extra, mivel vissza kell töltenünk a bejelö
 ```
 function save_custom_radio_buttons( $post_id ) {
     if ( isset( $_POST['_custom_product_radio'] ) ) {
-        error_log('Radio value before sanitization: ' . $_POST['_custom_product_radio']);
         $radio_value = sanitize_text_field( $_POST['_custom_product_radio'] );
         update_post_meta( $post_id, '_custom_product_radio', $radio_value );
     } else {
