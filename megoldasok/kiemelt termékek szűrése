@@ -1,1 +1,35 @@
 
+add_action( 'restrict_manage_posts', 'filter_by_featured_products' );
+function filter_by_featured_products() {
+    global $typenow;
+
+    if ( 'product' === $typenow ) {
+        $is_featured = isset( $_GET['is_featured'] ) ? $_GET['is_featured'] : '';
+        echo '<select name="is_featured" id="is_featured">';
+        echo '<option value="">Minden termék</option>';
+        echo '<option value="yes" ' . selected( $is_featured, 'yes', false ) . '>Kiemelt termékek</option>';
+        echo '</select>';
+    }
+}
+
+add_filter( 'parse_query', 'filter_featured_products_query' );
+function filter_featured_products_query( $query ) {
+    global $typenow, $pagenow;
+
+    if ( 'edit.php' !== $pagenow || 'product' !== $typenow || !isset( $_GET['is_featured'] ) ) {
+        return;
+    }
+
+    if ( 'yes' === $_GET['is_featured'] ) {
+        $tax_query = array(
+            array(
+                'taxonomy' => 'product_visibility',
+                'field'    => 'name',
+                'terms'    => 'featured',
+                'operator' => 'IN',
+            ),
+        );
+        $query->set( 'tax_query', $tax_query );
+    }
+}
+
