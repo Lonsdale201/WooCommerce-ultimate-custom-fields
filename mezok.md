@@ -1,6 +1,7 @@
 
 A WooCommerce alapértelmezetten 6 típusú egyedi mezőt támogat úgynevezett built in módon. 
 * Text
+* Textarea
 * Number
 * Checkbox
 * Radio
@@ -23,3 +24,8 @@ function add_custom_text_field() {
     ));
 }
 ```
+
+ID             -> Ez lesz a meta azonosítója, nem tartalmazhat speciális karaktereket vagy ékezetet. Minden meződnek eltérő azonosítóval kell rendelkeznie.
+LABEL          -> Ez lesz a mező címkéje, neve ami megjelenik az egyedi mező felett.
+PLACEHOLDER    -> Másnéven helykitöltő, egyes mezők esetében ez jelenik meg az input-ban. (például a text, vagy textarea esetében)
+DESC_TIP       -> A WooCommerce beépített Tooltip kezelője, ha az érték true, azaz igaz, a *description* azaz leírás tooltip ként fog megjelenni.
