@@ -128,12 +128,33 @@ function add_custom_select_field() {
 ```
 add_action( 'woocommerce_product_options_general_product_data', 'add_custom_radio_buttons' );
 function add_custom_radio_buttons() {
+    global $post;
+
+    // Lekérjük a mentett értéket
+    $saved_value = get_post_meta( $post->ID, '_custom_product_radio', true );
+
+    // Rádiógombok megjelenítése
     echo '<div class="options_group">';
     echo '<p class="form-field _custom_product_radio_field">';
     echo '<label>' . __('Custom Radio Buttons', 'woocommerce') . '</label>';
-    echo '<input type="radio" name="_custom_product_radio" value="option1"> ' . __('Option 1', 'woocommerce') . '<br>';
-    echo '<input type="radio" name="_custom_product_radio" value="option2"> ' . __('Option 2', 'woocommerce');
+    echo '<input type="radio" name="_custom_product_radio" value="option1" ' . checked( $saved_value, 'option1', false ) . '> ' . __('Option 1', 'woocommerce') . '<br>';
+    echo '<input type="radio" name="_custom_product_radio" value="option2" ' . checked( $saved_value, 'option2', false ) . '> ' . __('Option 2', 'woocommerce');
     echo '</p>';
     echo '</div>';
 }
+```
+
+Mentés:
+
+A Radiogombok esetében van némi extra, mivel vissza kell töltenünk a bejelölt értéket, ezért valamivel eltérőbb lesz a többinél az alapértelmezett kódja
+```
+function save_custom_radio_buttons( $post_id ) {
+    if ( isset( $_POST['_custom_product_radio'] ) ) {
+        error_log('Radio value before sanitization: ' . $_POST['_custom_product_radio']);
+        $radio_value = sanitize_text_field( $_POST['_custom_product_radio'] );
+        update_post_meta( $post_id, '_custom_product_radio', $radio_value );
+    } else {
+    }
+}
+add_action( 'woocommerce_process_product_meta', 'save_custom_radio_buttons' );
 ```
