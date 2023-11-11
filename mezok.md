@@ -8,6 +8,7 @@ A WooCommerce alapértelmezetten 6 típusú egyedi mezőt támogat úgynevezett 
 * Radio
 * Select (dropdown)
 
+
 ## A mezők létrehozásakor úgynevezett attributumok segítségével tudjuk meghatározni az egyes tulajdonságokat.
 
 **Példa:**
@@ -189,4 +190,121 @@ function save_custom_radio_buttons( $post_id ) {
     }
 }
 add_action( 'woocommerce_process_product_meta', 'save_custom_radio_buttons' );
+```
+
+
+### Speciális Multiple select mező
+
+Amennyiben olyan mezőt szeretnél készíteni, amiben egy vagy több értéket is ki lehet jelölni, úgy felhasználhatjuk a WooCommerce által is használt select2 kiegészítőt
+Itt két érték van "value1 stb stb", és mellé egy "Label" A label paraméterek lesznek azok amik a mezőben láthatóak lesznek a felhasználó számára, de az adatbázisban a value1 stb értékek kerülnek mentésre.
+
+```
+add_action( 'woocommerce_product_options_general_product_data', 'add_custom_multiple_select_field' );
+function add_custom_multiple_select_field() {
+    global $post;
+
+    // Lekérjük a mentett értékeket
+    $saved_values = get_post_meta( $post->ID, '_custom_product_multiple_select', true );
+    $saved_values = !empty($saved_values) ? explode(',', $saved_values) : array();
+
+    // Opciók definiálása
+    $options = array(
+        'value1' => __('Label 1', 'woocommerce'),
+        'value2' => __('Label 2', 'woocommerce'),
+        'value3' => __('Label 3', 'woocommerce'),
+        'value4' => __('Label 4', 'woocommerce')
+    );
+
+    echo '<p class="form-field">';
+    echo '<label for="_custom_product_multiple_select">' . __('Custom Multiple Select', 'woocommerce') . '</label>';
+    echo '<select id="_custom_product_multiple_select" name="_custom_product_multiple_select[]" class="wc-enhanced-select" multiple="multiple">';
+    foreach ($options as $value => $label) {
+        echo '<option value="' . esc_attr($value) . '" ' . (in_array($value, $saved_values) ? 'selected' : '') . '>' . esc_html($label) . '</option>';
+    }
+    echo '</select>';
+    echo '</p>';
+}
+```
+
+Mentés esetében, hogy ezek az értékek szűrő kompatibilisek legyenek az *implode* segítségével vesszőalapú elválasztási technikát alkalmazhatunk, így például ezeket az értékeket a JetSmartFilter képes lesz érézkelni, és szűrni:
+
+```
+add_action( 'woocommerce_process_product_meta', 'save_custom_multiple_select_field' );
+function save_custom_multiple_select_field( $post_id ) {
+    if ( isset( $_POST['_custom_product_multiple_select'] ) ) {
+        $select_values = array_map('sanitize_text_field', $_POST['_custom_product_multiple_select']);
+        $select_values = implode(',', $select_values); // Vesszővel elválasztott stringgé alakítjuk
+        update_post_meta( $post_id, '_custom_product_multiple_select', $select_values );
+    } else {
+        delete_post_meta( $post_id, '_custom_product_multiple_select' );
+    }
+}
+```
+
+Fontos megjegyezni, hogy a frontend -en való kiíráskor alapértelmezetten a value azaz az adatbázisban tárolt értéket fogja megjeleníteni. Nézzünk meg egy shortcode példát az alapvető value értékek megjelenítésére, és egy label alapú megjelenítésre is.
+
+value alapú alapértelmezett megjelenítése:
+**Shortcode: [custom_multiple_select]**
+
+```
+function display_custom_multiple_select_values() {
+    global $post;
+
+    // Ellenőrizzük, hogy van-e érvényes termék ID
+    if ( !is_a( $post, 'WP_Post' ) || get_post_type( $post->ID ) !== 'product' ) {
+        return '';
+    }
+
+    // Lekérjük a mentett értékeket
+    $saved_values = get_post_meta( $post->ID, '_custom_product_multiple_select', true );
+    if ( !empty($saved_values) ) {
+        // Vesszővel elválasztva jelenítjük meg az értékeket
+        return esc_html( implode( ', ', explode(',', $saved_values) ) );
+    }
+
+    return __('Nincs beállított érték', 'woocommerce');
+}
+add_shortcode( 'custom_multiple_select', 'display_custom_multiple_select_values' );
+```
+
+Label alapú megjelenítése:
+**Shortcode: [custom_multiple_select_labels]**
+
+```
+function display_custom_multiple_select_labels() {
+    global $post;
+
+    // Ellenőrizzük, hogy van-e érvényes termék ID
+    if ( !is_a( $post, 'WP_Post' ) || get_post_type( $post->ID ) !== 'product' ) {
+        return '';
+    }
+
+    // Lekérjük a mentett értékeket
+    $saved_values = get_post_meta( $post->ID, '_custom_product_multiple_select', true );
+    if ( !empty($saved_values) ) {
+        $saved_values = explode(',', $saved_values);
+
+        // Opciók definiálása (ugyanazok, mint a mező létrehozásakor)
+        $options = array(
+            'value1' => __('Label 1', 'woocommerce'),
+            'value2' => __('Label 2', 'woocommerce'),
+            'value3' => __('Label 3', 'woocommerce'),
+            'value4' => __('Label 4', 'woocommerce')
+        );
+
+        // Az értékek átkonvertálása label-ekre
+        $labels = array();
+        foreach ($saved_values as $value) {
+            if (isset($options[$value])) {
+                $labels[] = $options[$value];
+            }
+        }
+
+        // Vesszővel elválasztva jelenítjük meg a label-eket
+        return implode(', ', $labels);
+    }
+
+    return __('Nincs beállított érték', 'woocommerce');
+}
+add_shortcode( 'custom_multiple_select_labels', 'display_custom_multiple_select_labels' );
 ```
