@@ -240,8 +240,9 @@ function save_custom_multiple_select_field( $post_id ) {
     }
 }
 ```
+### Frontend megjelenítései metódusok
 
-Fontos megjegyezni, hogy a frontend -en való kiíráskor alapértelmezetten a value azaz az adatbázisban tárolt értéket fogja megjeleníteni. Nézzünk meg egy shortcode példát az alapvető value értékek megjelenítésére, és egy label alapú megjelenítésre is.
+Fontos megjegyezni, hogy a frontend -en való kiíráskor alapértelmezetten a value azaz az adatbázisban tárolt értéket fogja megjeleníteni. Nézzünk meg egy shortcode példát az alapvető value értékek megjelenítésére, és egy label alapú megjelenítésre is. Megfelelő adatbázis kódolás esetében használhatsz a tárolt értékek esetében ékezetes értékeket is.
 
 value alapú alapértelmezett megjelenítése:
 **Shortcode: [custom_multiple_select]**
