@@ -54,6 +54,19 @@ function display_packaging_fee_on_product_page() {
     }
 }
 
+// ha nem jelenik meg a page builder miatt használd ezt a woocommerce_single_product_summary helyett
+
+add_action( 'woocommerce_before_add_to_cart_form', 'display_packaging_fee_above_add_to_cart_button' );
+function display_packaging_fee_above_add_to_cart_button() {
+    global $product;
+
+    $packaging_price = get_post_meta( $product->get_id(), '_packaging_price', true );
+
+    if ( !empty( $packaging_price ) && is_numeric( $packaging_price ) && $packaging_price > 0 ) {
+        echo '<p class="packaging-fee">Csomagolási díj: ' . wc_price( $packaging_price ) . '</p>';
+    }
+}
+
 
 add_action( 'woocommerce_cart_calculate_fees', 'add_packaging_fee_to_cart' );
 function add_packaging_fee_to_cart( $cart ) {
