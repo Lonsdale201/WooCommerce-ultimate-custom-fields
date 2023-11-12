@@ -39,7 +39,7 @@ function save_custom_product_text_field( $post_id ) {
 
 ```
 
-A kód három szakaszból áll. Az elsőben regisztrálunk egy új fület *Kiegészítők* néven. A második bekezdésben egy text metát helyezük el benne, a harmadik szakaszban pedig gondoskodunk ennek mentéséről. Most az egyedi tabfül lesz az "újdonság", így nézzük meg annak paramétereit mit jelentenek
+A kód három szakaszból áll. Az elsőben regisztrálunk egy új fület *Kiegészítők* néven. A második bekezdésben egy text metát helyezük el benne, a harmadik szakaszban pedig gondoskodunk ennek mentéséről. Most az egyedi tabfül lesz az "újdonság". Nézzük meg annak paramétereit mit jelentenek
 
 
 * LABEL    => Ez lesz a tabfülnek neve, amit a felhasználó látni fog a termékszerkesztőben
@@ -49,7 +49,7 @@ A kód három szakaszból áll. Az elsőben regisztrálunk egy új fület *Kieg�
 
 ### További lehetőségek
 
-Jelenleg az új tabfül minden típusú termék esetében elérhető, egyszerű, variálható stb. azonban beállhíató az, hogy csak specifikus esetékben legyne elérhető, például csak a variálható termékek esetében
+Jelenleg az új tabfül minden típusú termék esetében elérhető, egyszerű, variálható stb. azonban beállítható az, hogy csak specifikus esetékben legyen elérhető, például csak a variálható termékek esetében
 
 ```
 add_filter( 'woocommerce_product_data_tabs', 'add_custom_product_data_tab' );
