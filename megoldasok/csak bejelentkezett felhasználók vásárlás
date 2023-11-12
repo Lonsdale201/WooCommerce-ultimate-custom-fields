@@ -1,0 +1,45 @@
+// Ebben a példában, egy új termék tabfület készítünk a backend oldalra, Láthatóság néven, és egy checkboxot. A checkbox bejelölése biztosítja hogy az adott terméket nem vásárolhatják meg azok, akik nincsenek bejelentkezve
+
+add_filter( 'woocommerce_product_data_tabs', 'add_visibility_product_data_tab' );
+function add_visibility_product_data_tab( $tabs ) {
+    $tabs['visibility_tab'] = array(
+        'label'    => __('Láthatóság', 'woocommerce'),
+        'target'   => 'visibility_product_data',
+        'class'    => array(),
+        'priority' => 85,
+    );
+    return $tabs;
+}
+
+add_action( 'woocommerce_product_data_panels', 'add_visibility_product_data_fields' );
+function add_visibility_product_data_fields() {
+    echo '<div id="visibility_product_data" class="panel woocommerce_options_panel">';
+    woocommerce_wp_checkbox( array(
+        'id'          => '_visibility_for_logged_in',
+        'label'       => __('Csak bejelentkezett felhasználó', 'woocommerce'),
+        'description' => __('Csak bejelentkezett felhasználók vásárolhatják meg ezt a terméket.', 'woocommerce'),
+        'desc_tip'    => true,
+    ));
+    echo '</div>';
+}
+
+add_action( 'woocommerce_process_product_meta', 'save_visibility_custom_field' );
+function save_visibility_custom_field( $post_id ) {
+    $visibility_for_logged_in = isset( $_POST['_visibility_for_logged_in'] ) ? 'yes' : 'no';
+    update_post_meta( $post_id, '_visibility_for_logged_in', $visibility_for_logged_in );
+}
+
+add_filter( 'woocommerce_is_purchasable', 'custom_product_purchasable_for_logged_in_users', 10, 2 );
+function custom_product_purchasable_for_logged_in_users( $purchasable, $product ) {
+    $visibility_for_logged_in = get_post_meta( $product->get_id(), '_visibility_for_logged_in', true );
+
+    if ( 'yes' === $visibility_for_logged_in && !is_user_logged_in() ) {
+        $purchasable = false;
+    }
+
+    return $purchasable;
+}
+
+
+
+
