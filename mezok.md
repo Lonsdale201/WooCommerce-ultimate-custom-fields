@@ -30,7 +30,7 @@ function add_custom_text_field() {
     ));
 }
 ```
-A példa kód egy egyszerű text meta mezőt fog létrehozni, amely közvetlenül a **Álatalános** tabfülön az árak alatt jelenik meg. A poziciót, és hogy melyik tabfülbe szeretnénk elhelyezni, vagy esetleg egy teljesen újban szintén lehetséges.
+A példa kód egy egyszerű text meta mezőt fog létrehozni, amely közvetlenül a **Álatalános** tabfülön az árak alatt jelenik meg (woocommerce_product_options_general_product_data). A poziciót, és hogy melyik tabfülbe szeretnénk elhelyezni, vagy esetleg egy teljesen újban szintén lehetséges.
 
 * ID             -> Ez lesz a meta azonosítója, nem tartalmazhat speciális karaktereket vagy ékezetet. Minden meződnek eltérő azonosítóval kell rendelkeznie.
 * LABEL          -> Ez lesz a mező címkéje, neve ami megjelenik az egyedi mező felett.
@@ -376,4 +376,15 @@ function save_custom_date_field( $post_id ) {
     }
 }
 ```
+
+## WooCommerce tab hookok
+
+Az eddigi példában szereplő kódokat mind az általános tabfülbe helyeztük el. Lehetőség van bármelyik meglévőbe átrakni, sőt újakat is készíthetünk. A tabfül hookok a következők:
+
+* woocommerce_product_options_general_product_data (általános)
+* woocommerce_product_options_inventory_product_data (készlet)
+* woocommerce_product_options_shipping (szállítás)
+* woocommerce_product_options_related (kapcsolódó termékek)
+* woocommerce_product_options_advanced (haladó)
+
 
