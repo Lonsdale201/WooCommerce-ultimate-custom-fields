@@ -79,3 +79,81 @@ function custom_variation_field_display_script() {
 }
 ```
 
+A fenti kód egy teljes példa, emiben az egyes variálható termékekhez hozzáadtunk egy text mezőt, és kezeljük annak mentését. A kód második szakasza tartalmaz egy adathozzáférést, *woocommerce_available_variation* segítségével a javascript (pontosabban jQuery) által átadhatóak az adatok, amiket így megjeleníthetünk a frontend oldalon. A scriptet a footerben helyeztük el, és szabályozzuk, hogy csak a termék single oldalon fut. A js reagál a felhasználó által kiválasztott variációkra, és amennyiben van megjeleníthető egyedi adat megjeleníti azt a kosárhoz adás felett. 
+
+Mivel a variálható termékek esetében az egyedi mező hozzáadás némileg eltér a normál egyszerű termékek esetében, nézzünk meg egy további példát, ahol egy speciális multi select dropdown mezőt adunk hozzá. Az újabb kód a backend és frontend kezelést egyaránt kezelni fogja a fentihez hasonlóan.
+
+```
+	add_action( 'woocommerce_product_after_variable_attributes', 'add_custom_multiple_select_to_variations', 10, 3 );
+function add_custom_multiple_select_to_variations( $loop, $variation_data, $variation ) {
+    // A választható opciók
+    $options = array(
+        'option1' => 'Opció 1',
+        'option2' => 'Opció 2',
+        'option3' => 'Opció 3',
+        // További opciók
+    );
+
+    // Az aktuális értékek beolvasása
+    $current_values = get_post_meta( $variation->ID, '_custom_variation_multiple_select', true );
+    $current_values = !empty($current_values) ? explode(',', $current_values) : array();
+
+    // Mező megjelenítése
+    echo '<div class="form-row form-row-full">';
+    echo '<label>' . __( 'Többszörös Választás', 'woocommerce' ) . '</label>';
+    echo '<select multiple name="_custom_variation_multiple_select_' . $loop . '[]" class="wc-enhanced-select">';
+    foreach ($options as $value => $label) {
+        echo '<option value="' . esc_attr($value) . '" ' . (in_array($value, $current_values) ? 'selected' : '') . '>' . esc_html($label) . '</option>';
+    }
+    echo '</select>';
+    echo '</div>';
+}
+
+// mentés
+
+add_action( 'woocommerce_save_product_variation', 'save_custom_multiple_select_variations', 10, 2 );
+function save_custom_multiple_select_variations( $variation_id, $i ) {
+    $custom_field = isset( $_POST['_custom_variation_multiple_select_' . $i] ) ? $_POST['_custom_variation_multiple_select_' . $i] : '';
+    $custom_field = is_array($custom_field) ? implode(',', array_map('sanitize_text_field', $custom_field)) : '';
+    update_post_meta( $variation_id, '_custom_variation_multiple_select', $custom_field );
+}
+
+// átadás
+
+add_filter( 'woocommerce_available_variation', 'add_custom_multiple_select_to_variation_data', 10, 3 );
+function add_custom_multiple_select_to_variation_data( $variation_data, $product, $variation ) {
+    $custom_field_value = get_post_meta( $variation->get_id(), '_custom_variation_multiple_select', true );
+    $variation_data['custom_multiple_select'] = $custom_field_value;
+    return $variation_data;
+}
+
+
+// megjelenítés
+
+add_action( 'wp_footer', 'custom_multiple_select_field_display_script' );
+function custom_multiple_select_field_display_script() {
+    if ( !is_product() ) return;
+
+    ?>
+    <script type="text/javascript">
+    jQuery(document).ready(function($) {
+        $('form.variations_form').on('show_variation', function(event, variation) {
+            $('.custom-multiple-select-field').remove();
+
+            if (variation.custom_multiple_select) {
+                var selectedOptions = variation.custom_multiple_select.split(',').join(', ');
+                var customFieldContent = $('<div/>', {
+                    'class': 'custom-multiple-select-field',
+                    'text': selectedOptions
+                });
+
+                $('.single_variation').before(customFieldContent);
+            }
+        }).on('hide_variation', function(event) {
+            $('.custom-multiple-select-field').remove();
+        });
+    });
+    </script>
+    <?php
+}
+```
