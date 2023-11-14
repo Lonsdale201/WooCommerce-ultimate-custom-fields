@@ -1,0 +1,33 @@
+// ez a kód egy extra checkboxot ad hozzá a termék szerkesztő backend oldalra. Azoknál a termékeknél ahol bejelölöd, megjelenik egy extra leírás doboz a kosrához adás form alatt. használhatod ha valamilyen speciális információt szeretnél megjeleníteni a termékről
+// a szöveget a kódban kell átírnod.
+// másold be a functions.php fájlba (Child theme!), vagy egy speciális code snippets pluginba
+// CSS Osztályok: wrapper elem: .verification-wrapper  | h3 címsor: .verification-header | span szöveg: .verification-text
+
+add_action( 'woocommerce_product_options_general_product_data', 'add_custom_checkbox_to_products' );
+function add_custom_checkbox_to_products() {
+    woocommerce_wp_checkbox( array( 
+        'id' => 'show_verification_div', 
+        'label' => __('Megjelenítés a termékoldalon', 'woocommerce' ), 
+        'description' => __('Speciális doboz megjelenítése.', 'woocommerce' ) 
+    ));
+}
+
+add_action( 'woocommerce_process_product_meta', 'save_custom_checkbox_to_products', 10, 1 );
+function save_custom_checkbox_to_products( $post_id ) {
+    $checkbox = isset( $_POST['show_verification_div'] ) ? 'yes' : 'no';
+    update_post_meta( $post_id, 'show_verification_div', $checkbox );
+}
+
+add_action( 'woocommerce_after_add_to_cart_form', 'display_custom_div_on_product_page', 20 );
+function display_custom_div_on_product_page() {
+    global $product;
+    if ( 'yes' === get_post_meta( $product->get_id(), 'show_verification_div', true ) ) {
+        echo '<div class="verification-wrapper">
+                <div class="verification">
+                    <h3 class="verification-header">Verification Header</h3>
+                    <span class="verification-text">Lorem ipsum dolor sit amet, consectetur adipiscing elit.</span>
+                </div>
+              </div>';
+    }
+}
+
