@@ -1,4 +1,5 @@
 // Backend oldalon a termékek listázásánál egy új szűrő, amely képes szűrni a csak kimelet termékekre.
+// Másold a kódot a functions.php fájlba (child theme!), vagy egy specifikus code snippets bővítménybe
 
 
 add_action( 'restrict_manage_posts', 'filter_by_featured_products' );
