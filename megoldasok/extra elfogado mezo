@@ -1,0 +1,80 @@
+// Másold a kódot a functions.php fájlba (child theme!), vagy egy specifikus code snippets bővítménybe
+
+// első verzió: Minden termék esetében egy új kötelező checkbox mezőt ad hozzá a pénztár oldalhoz
+
+add_action( 'woocommerce_review_order_before_submit', 'add_age_verification_checkbox', 10 );
+function add_age_verification_checkbox() {
+    woocommerce_form_field( 'age_verification', array(
+        'type'  => 'checkbox',
+        'class' => array('form-row age-verification'),
+        'label' => __('Elfogadom, hogy elmúltam 18 éves', 'woocommerce'),
+        'required' => true,
+    ), WC()->checkout()->get_value( 'age_verification' ));
+}
+
+add_action( 'woocommerce_checkout_process', 'check_age_verification_checkbox' );
+function check_age_verification_checkbox() {
+    if ( ! isset( $_POST['age_verification'] ) ) {
+        wc_add_notice( __( 'Kérjük, erősítsd meg, hogy elmúltál 18 éves.', 'woocommerce' ), 'error' );
+    }
+}
+
+
+// második verzió, minden termék esetében, és egy extra linket is beszúrhatsz.
+
+
+add_action( 'woocommerce_review_order_before_submit', 'add_age_verification_checkbox', 10 );
+function add_age_verification_checkbox() {
+    $label_html = __('Elfogadom, hogy elmúltam 18 éves', 'woocommerce') . ' - <a href="pelda.com" target="_blank">További információk</a>';
+
+    woocommerce_form_field( 'age_verification', array(
+        'type'  => 'checkbox',
+        'class' => array('form-row age-verification'),
+        'label' => $label_html,
+        'required' => true,
+    ), WC()->checkout()->get_value( 'age_verification' ));
+}
+
+add_action( 'woocommerce_checkout_process', 'check_age_verification_checkbox' );
+function check_age_verification_checkbox() {
+    if ( ! isset( $_POST['age_verification'] ) ) {
+        wc_add_notice( __( 'Kérjük, erősítsd meg, hogy elmúltál 18 éves.', 'woocommerce' ), 'error' );
+    }
+}
+
+
+// harmadik verzió, csak bizonyos termékek esetében jelenik meg (link nincs benne)
+
+function is_age_restricted_product_in_cart( $product_ids ) {
+    foreach ( WC()->cart->get_cart() as $cart_item ) {
+        if ( in_array( $cart_item['product_id'], $product_ids ) ) {
+            return true;
+        }
+    }
+    return false;
+}
+
+add_action( 'woocommerce_review_order_before_submit', 'add_age_verification_checkbox', 10 );
+function add_age_verification_checkbox() {
+    // Itt add meg a korhatáros termékek ID-jait
+    $restricted_product_ids = [1024,362]; // Cseréld le a saját termék ID-kre
+
+    if ( is_age_restricted_product_in_cart( $restricted_product_ids ) ) {
+        woocommerce_form_field( 'age_verification', array(
+            'type'  => 'checkbox',
+            'class' => array('form-row age-verification'),
+            'label' => __('Elfogadom, hogy elmúltam 18 éves', 'woocommerce'),
+            'required' => true,
+        ), WC()->checkout()->get_value( 'age_verification' ));
+    }
+}
+
+add_action( 'woocommerce_checkout_process', 'check_age_verification_checkbox' );
+function check_age_verification_checkbox() {
+    // Ugyanez a termék ID ellenőrzés
+    $restricted_product_ids = [1024,362]; // Cseréld le a fentihez hasonlóan a termék ID-kre, ugyan azokra
+
+    if ( is_age_restricted_product_in_cart( $restricted_product_ids ) && ! isset( $_POST['age_verification'] ) ) {
+        wc_add_notice( __( 'Kérjük, erősítsd meg, hogy elmúltál 18 éves.', 'woocommerce' ), 'error' );
+    }
+}
