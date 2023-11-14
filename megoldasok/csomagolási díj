@@ -1,4 +1,4 @@
-
+// Másold a kódot a functions.php fájlba (child theme!), vagy egy specifikus code snippets bővítménybe
 
 add_action( 'woocommerce_product_options_pricing', 'add_packaging_price_field' );
 function add_packaging_price_field() {
