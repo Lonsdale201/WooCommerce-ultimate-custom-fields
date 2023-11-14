@@ -1,4 +1,5 @@
 // Ebben a példában, egy új termék tabfület készítünk a backend oldalra, Láthatóság néven, és egy checkboxot. A checkbox bejelölése biztosítja hogy az adott terméket nem vásárolhatják meg azok, akik nincsenek bejelentkezve
+// Másold a kódot a functions.php fájlba (child theme!), vagy egy specifikus code snippets bővítménybe
 
 add_filter( 'woocommerce_product_data_tabs', 'add_visibility_product_data_tab' );
 function add_visibility_product_data_tab( $tabs ) {
