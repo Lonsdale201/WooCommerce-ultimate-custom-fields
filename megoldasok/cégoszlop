@@ -1,4 +1,5 @@
 // a kód a woocomerce cég mezőt megjeleníti a backenden a felhasználói táblázatban
+// Másold a kódot a functions.php fájlba (child theme!), vagy egy specifikus code snippets bővítménybe
 
 add_filter( 'manage_users_columns', 'add_company_name_column' );
 function add_company_name_column( $columns ) {
