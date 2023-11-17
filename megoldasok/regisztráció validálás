@@ -1,0 +1,24 @@
+// ez az gyszerű kód két irányú egyszerűsített validációt ad hozzá a woocomerce alapértelmezett fiókom oldalon történő regisztrációhoz
+// először megnézi, hogy regisztrálni kívánt email címben szereple-e az admin , ezután, megnézi, hogy az email cím végződésekben , vagy az aldomainekben van-e .ru .cn vagy .net, ha igen, nem engedi regisztrálni.
+
+function validate_registration_email( $errors, $username, $email ) {
+    // Ellenőrizzük az "admin" szót az e-mailben
+    if ( strpos( $email, 'admin' ) !== false ) {
+        $errors->add( 'email_error_admin', __( 'E-mail címek nem tartalmazhatnak bizonyos kifejezéseket, mint pl "admin".', 'woocommerce' ) );
+    }
+
+    // Ellenőrizzük a tiltott domain végződéseket és az aldoméneket
+    $forbidden_domains = ['.ru', '.cn', '.net'];
+    $email_domain = substr( strrchr( $email, "@" ), 1 ); 
+
+    foreach ($forbidden_domains as $domain) {
+        if ( strpos( $email_domain, $domain ) !== false ) {
+            $errors->add( 'email_error_domain', sprintf( __( 'E-mail címek nem használhatnak %s domain-t.', 'woocommerce' ), $domain ) );
+            break;
+        }
+    }
+
+    return $errors;
+}
+
+add_filter( 'woocommerce_registration_errors', 'validate_registration_email', 10, 3 );
