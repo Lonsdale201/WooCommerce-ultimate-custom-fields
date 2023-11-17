@@ -1,5 +1,6 @@
 // ez az gyszerű kód két irányú egyszerűsített validációt ad hozzá a woocomerce alapértelmezett fiókom oldalon történő regisztrációhoz
 // először megnézi, hogy regisztrálni kívánt email címben szereple-e az admin , ezután, megnézi, hogy az email cím végződésekben , vagy az aldomainekben van-e .ru .cn vagy .net, ha igen, nem engedi regisztrálni.
+// másold be a functions.php fájlba (Child theme!), vagy egy speciális code snippets pluginba
 
 function validate_registration_email( $errors, $username, $email ) {
     // Ellenőrizzük az "admin" szót az e-mailben
