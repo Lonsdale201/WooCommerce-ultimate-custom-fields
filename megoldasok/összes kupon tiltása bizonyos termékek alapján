@@ -1,0 +1,19 @@
+// másold be a functions.php fájlba (Child theme!), vagy egy speciális code snippets pluginba
+// add meg a saját ID ket (termékazonosítókat), ami, vagy amik ha szerepelnek a kosárban, letiltja az  összes kupon használatot
+
+function disable_coupons_for_products( $valid, $coupon ) {
+    $specific_product_ids = [166, 100]; // Add meg a termék azonosítóka, ha csak egyet akarsz kirzáni: [100];
+
+   
+    foreach ( WC()->cart->get_cart() as $cart_item ) {
+        if ( in_array( $cart_item['product_id'], $specific_product_ids ) ) {
+            $valid = false; 
+            wc_add_notice( __( 'A kupont nem tudod érvényesíteni.', 'woocommerce' ), 'error' );
+            break;
+        }
+    }
+
+    return $valid;
+}
+
+add_filter( 'woocommerce_coupon_is_valid', 'disable_coupons_for_products', 10, 2 );
