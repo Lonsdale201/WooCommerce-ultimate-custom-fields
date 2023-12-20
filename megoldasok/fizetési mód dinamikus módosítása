@@ -1,0 +1,25 @@
+// az alábbi kódban meghatározzuk, hogy ha a felhasználónak a kosár értéke eléri vagy meghaladja a 30.000 értéket, akkor csak a banki átutalásos fizetést használhatja
+// az "if ('bacs')" a bacs írd át arra a fizetési módra amire szeretnéd pl cod = utánvétes fizetés
+
+// Másold a kódot a functions.php fájlba (child theme!), vagy egy specifikus code snippets bővítménybe
+
+add_filter( 'woocommerce_available_payment_gateways', 'limit_payment_methods_based_on_cart_total' );
+
+function limit_payment_methods_based_on_cart_total( $available_gateways ) {
+    // Határozd meg a minimum kosárértéket pl (30000 Ft)
+    $minimum_cart_total = 30000;
+    $cart_total = WC()->cart->total;
+
+   
+    if ( $cart_total >= $minimum_cart_total ) {
+        foreach ( $available_gateways as $gateway_id => $gateway ) {
+            if ( 'bacs' !== $gateway_id ) {
+                unset( $available_gateways[ $gateway_id ] );
+            }
+        }
+    }
+
+    return $available_gateways;
+}
+
+add_filter( 'woocommerce_available_payment_gateways', 'limit_payment_methods_based_on_cart_total' );
