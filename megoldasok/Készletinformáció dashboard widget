@@ -1,0 +1,76 @@
+// másold be a functions.php fájlba (Child theme!), vagy egy speciális code snippets pluginba // futtatásnak elég megadni, hogy csak admin oldalon.
+// Ez a kód megjeleníti a Wp-admin dashboard (Vezérlőpult) menüben egy új Widgetet Webshop termékek összértéke néven
+// megmutatja az aktuális termékek (készleten lévő) esetében a nettó, és bruttó össz árait. (variációs termékeket is figyelembe veszi)
+// Ezen kívül megmutatja, hogy összesen mennyi tétel / termék van készleten / nincs készleten (ha egy terméknek van meghatározva tételszám, akkor szorozza!)
+// A kód csak az adminok számára biztosítja ezt a widgetet, és csak akkor ha a WooCommerce telepítve / aktiválva van
+
+add_action('wp_dashboard_setup', 'add_custom_dashboard_widget');
+
+function add_custom_dashboard_widget() {
+     if (class_exists('WooCommerce') && current_user_can('administrator')) {
+        wp_add_dashboard_widget('custom_dashboard_widget', 'Webshop Termékek Összértéke', 'custom_dashboard_widget_function');
+    }
+}
+
+function custom_dashboard_widget_function() {
+    $total_net = 0;
+    $total_gross = 0;
+    $in_stock_count = 0;
+    $out_of_stock_count = 0;
+
+    // Product query
+    $args = array(
+        'post_type' => 'product',
+        'posts_per_page' => -1,
+        'post_status' => 'publish',
+    );
+
+    $products = new WP_Query($args);
+
+    if ($products->have_posts()) {
+        while ($products->have_posts()) {
+            $products->the_post();
+            $product = wc_get_product(get_the_ID());
+
+            // Simple product handler
+            if ($product->is_type('simple')) {
+                if ($product->is_in_stock()) {
+                    $stock_quantity = $product->get_stock_quantity() === null ? 1 : $product->get_stock_quantity();
+                    $total_net += wc_get_price_excluding_tax($product) * $stock_quantity;
+                    $total_gross += wc_get_price_including_tax($product) * $stock_quantity;
+                    $in_stock_count += $stock_quantity;
+                } else {
+                    $out_of_stock_count++;
+                }
+            }
+
+            // Variable product handler
+            if ($product->is_type('variable')) {
+                foreach ($product->get_available_variations() as $variation_data) {
+                    $variation = wc_get_product($variation_data['variation_id']);
+                    if ($variation->is_in_stock()) {
+                        $stock_quantity = $variation->get_stock_quantity() === null ? 1 : $variation->get_stock_quantity();
+                        $total_net += wc_get_price_excluding_tax($variation) * $stock_quantity;
+                        $total_gross += wc_get_price_including_tax($variation) * $stock_quantity;
+                        $in_stock_count += $stock_quantity;
+                    } else {
+                        $out_of_stock_count++;
+                    }
+                }
+            }
+        }
+    }
+
+    // Result html
+    echo '<h3><b>Készlet összesítő</b></h3>';
+    echo '<span><i>Megmutatja, hogy a jelenleg készleten lévő termékek alapján mennyi az összértékük, nettó és bruttóban.</i></span>';
+    echo '<p>Összes nettó érték: ' . wc_price($total_net) . '</p>';
+    echo '<p>Összes bruttó érték: ' . wc_price($total_gross) . '</p>';
+
+    echo '<h3><b>Készlet statisztika:</b></h3>';
+    echo '<span><i>Figyelem, ha a terméknek megvan határozva a készletszáma, úgy ennek megfelelően kalkulálunk. (1 termék 5 van készletet = 5)</i></span>';
+    echo '<p>Készleten lévő termékek száma: ' . $in_stock_count . '</p>';
+    echo '<p>Nincs készleten lévő termékek száma: ' . $out_of_stock_count . '</p>';
+
+    wp_reset_postdata();
+}
