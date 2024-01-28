@@ -1,3 +1,8 @@
+## Table of content
+
+* [Text mező létrehozása - mentése](#a-mezők-létrehozásakor-úgynevezett-attributumok-segítségével-tudjuk-meghatározni-az-egyes-tulajdonságokat)
+* [Textarea mező létrehozása - mentése](#textarea-típusú-meta-mező)
+
 
 ## A WooCommerce alapértelmezetten 6 típusú egyedi mezőt támogat úgynevezett built in módon. 
 
@@ -65,6 +70,7 @@ function save_custom_text_field( $post_id ) {
 ## Példa az összes típusú meta mezőre:
 
 ### Textarea típusú meta mező
+Textarea mező létrehozása és mentése
 
 ```
 add_action( 'woocommerce_product_options_general_product_data', 'add_custom_textarea_field' );
@@ -77,8 +83,18 @@ function add_custom_textarea_field() {
     ));
 }
 ```
+Textarea esetében már releváns lehet, hogy átengedjük-e a beírt html formázásokat. Ha nics rá szükséged, használd a példában megadott "sanitize_textarea_field". Ha szükséged van a html-re is akkor cseréld ki erre: *$custom_field_value = sanitize_textarea_field( $_POST['_custom_product_textarea'] );*
+```
+add_action( 'woocommerce_process_product_meta', 'save_custom_textarea_field' );
+function save_custom_textarea_field( $post_id ) {
 
+    if ( isset( $_POST['_custom_product_textarea'] ) ) {
+        $custom_field_value = sanitize_textarea_field( $_POST['_custom_product_textarea'] );
 
+        update_post_meta( $post_id, '_custom_product_textarea', $custom_field_value );
+    }
+}
+```
 ### Number (szám) típusú meta mező
 
 ```
@@ -391,6 +407,9 @@ Az eddigi példában szereplő kódokat mind az általános tabfülbe helyeztük
 ## Egyedi mezők frontend megjelenítése hook / shortcode formában
 Hasznos link a témához: https://www.businessbloomer.com/woocommerce-visual-hook-guide-single-product-page/
 
+> [!WARNING]
+> Egyes pagebuilderek, mint pédául az Elementor esetében elképzelhető hogy a hook-on kell változtatni, vagy mivel ilyenkor adott a termékoldalak pagebuilder-el való szerkesztése, készíthetünk shortcode-ot a megjelenítéshez.
+
 ### text input meta, létrehozás / mentés / megjelenítés
 
 ```
@@ -502,8 +521,6 @@ function display_custom_field_shortcode( $atts ) {
 add_shortcode( 'display_custom_field', 'display_custom_field_shortcode' );
 ```
 
-> [!WARNING]
-> Egyes pagebuilderek, mint pédául az Elementor esetében elképzelhető hogy a hook-on kell változtatni, vagy mivel ilyenkor adott a termékoldalak pagebuilder-el való szerkesztése, készíthetünk shortcode-ot a megjelenítéshez.
 
 
 
