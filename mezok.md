@@ -13,6 +13,7 @@
 
 **Frontend megjelenítése**
 * [Text mező megjeleníétse](#text-input-meta-létrehozás--mentés--megjelenítés)
+* [Number mező megjelenítése](#number-input-meta-létrehozás--mentés--megjelenítés)
 
 
 ## A WooCommerce alapértelmezetten 6 típusú egyedi mezőt támogat úgynevezett built in módon. 
