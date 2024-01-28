@@ -470,7 +470,7 @@ function save_custom_text_field( $post_id ) {
 }
 ```
 ### Hook használata -> *woocommerce_after_add_to_cart_form*  
-cseréld le ha mésikat szeretnél használni
+Használhatsz másik WooCommerce hookot is az elhelyezés "poziciójához"
 ```
 // megjelenítés
 
@@ -545,6 +545,89 @@ function display_custom_field_shortcode( $atts ) {
 add_shortcode( 'display_custom_field', 'display_custom_field_shortcode' );
 ```
 
+### Number input meta, létrehozás / mentés / megjelenítés
+```
+add_action( 'woocommerce_product_options_general_product_data', 'add_custom_number_field' );
+function add_custom_number_field() {
+    woocommerce_wp_text_input( array(
+        'id'          => '_custom_product_number_field',
+        'label'       => __('Custom Number Field', 'woocommerce'),
+        'placeholder' => __('Enter a number', 'woocommerce'),
+        'description' => __('This is a custom number field.', 'woocommerce'),
+        'type'        => 'number',
+        'custom_attributes' => array(
+            'step'  => 'any',
+            'min'   => '0'
+        )
+    ));
+}
 
+add_action( 'woocommerce_process_product_meta', 'save_custom_number_field' );
+function save_custom_number_field( $post_id ) {
+    if ( isset( $_POST['_custom_product_number_field'] ) ) {
+        // Tisztítás, és konvertálás
+        $custom_field_value = sanitize_text_field( $_POST['_custom_product_number_field'] );
+        $custom_field_value = floatval( $custom_field_value );
 
+        update_post_meta( $post_id, '_custom_product_number_field', $custom_field_value );
+    }
+}
+```
+### Hook használata -> *woocommerce_after_add_to_cart_form*  
+Használhatsz másik WooCommerce hookot is az elhelyezés "poziciójához"
+```
+add_action( 'woocommerce_after_add_to_cart_form', 'display_custom_number_field' );
+function display_custom_number_field() {
+    global $post;
 
+    $custom_number_value = get_post_meta( $post->ID, '_custom_product_number_field', true );
+
+    if ( ! empty( $custom_number_value ) ) {
+        // Magyar formázás a számhoz (0= tizedesjegyek száma , ' ' ezres elválasztó ' ' tizedes jel)
+        $formatted_number = number_format( $custom_number_value, 0, ' ', ' ' );
+
+        echo '<div class="custom-number-field">';
+        echo '<p>' . esc_html( $formatted_number ) . '</p>';
+        echo '</div>';
+    }
+}
+```
+### Shortcode alapú megleneítés -> [display_custom_field]
+```
+function display_custom_number_field_shortcode( $atts ) {
+    global $post;
+
+    $custom_number_value = get_post_meta( $post->ID, '_custom_product_number_field', true );
+
+    if ( ! empty( $custom_number_value ) ) {
+        // Magyar formázás a számhoz (0= tizedesjegyek száma , ' ' ezres elválasztó ' ' tizedes jel)
+        $formatted_number = number_format( $custom_number_value, 0, ' ', ' ' );
+        return '<div class="custom-number-field"><span class="value">' . esc_html( $formatted_number ) . '</span></div>';
+    }
+
+    return '';
+}
+add_shortcode( 'custom_number_field', 'display_custom_number_field_shortcode' );
+```
+
+A második shortcode a text-hez hasonlóan biztosít egy extra label attributumot
+```
+function display_custom_number_field_shortcode( $atts ) {
+    $atts = shortcode_atts( array(
+        'label' => '', // Alapértelmezetten üres
+    ), $atts, 'display_custom_number_field' );
+
+    global $post;
+
+    $custom_number_value = get_post_meta( $post->ID, '_custom_product_number_field', true );
+
+      if ( ! empty( $custom_number_value ) ) {
+        // Magyar formázás a számhoz (0= tizedesjegyek száma , ' ' ezres elválasztó ' ' tizedes jel)
+        $formatted_number = number_format( $custom_number_value, 0, ' ', ' ' );
+        return '<div class="custom-number-field"><span class="label">' . esc_html( $atts['label'] ) . '</span><span class="value">' . esc_html( $formatted_number ) . '</span></div>';
+    }
+
+    return '';
+}
+add_shortcode( 'custom_number_field', 'display_custom_number_field_shortcode' );
+```
