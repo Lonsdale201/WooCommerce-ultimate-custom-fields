@@ -62,7 +62,7 @@ function save_custom_text_field( $post_id ) {
     }
 }
 ```
-### Mező értékének megjelenítése
+### Text Mező értékének megjelenítése
 Azonban sok esetben ezeket szeretnénk megjeleníteni a frontend-en, tehát itt még nem áll meg a dolog. Az első példában automatizáljuk, azaz teljesen függetlenül mindentől vezérelten jelenítjük meg, például a kosárhoz adás form alatt. Ha máshol szeretnéd a termék single oldlaán megjeleníteni, akkor cseréld le a *woocommerce_after_add_to_cart_form* 
 ```
 // megjelenítés
