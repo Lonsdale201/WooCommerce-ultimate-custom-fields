@@ -62,81 +62,6 @@ function save_custom_text_field( $post_id ) {
     }
 }
 ```
-### Text Mező értékének megjelenítése
-Azonban sok esetben ezeket szeretnénk megjeleníteni a frontend-en, tehát itt még nem áll meg a dolog. Az első példában automatizáljuk, azaz teljesen függetlenül mindentől vezérelten jelenítjük meg, például a kosárhoz adás form alatt. Ha máshol szeretnéd a termék single oldlaán megjeleníteni, akkor cseréld le a *woocommerce_after_add_to_cart_form* 
-```
-// megjelenítés
-
-add_action( 'woocommerce_after_add_to_cart_form', 'display_custom_field', 20 );
-function display_custom_field() {
-    global $post;
-
-    // Lekérjük a saját metánk értékét
-    $custom_field_value = get_post_meta( $post->ID, '_custom_product_text_field', true );
-
-    // Ellenőrizzük, hogy van-e érték a mezőben
-    if ( ! empty( $custom_field_value ) ) {
-        // Érték megjelenítése itt
-        echo '<div class="custom-field">';
-        echo '<p>' . esc_html( $custom_field_value ) . '</p>';
-        echo '</div>';
-    }
-}
-```
-Azonban előfordul hogy kicsit speciálisabb a helyzet, adott egy page builder, és sokkal jobb lenne ha inkább shortcode állna a rendelkezésünkre. Az alábbi példa Shortcode ot készít az egyedi mezőnköz, ami aztán a termék single sablonban bárhol elhelyezhetünk. a shortcode: **[display_custom_field]**
-```
-// megjelenítés
-
-function display_custom_field_shortcode( $atts ) {
-    $atts = shortcode_atts( array(), $atts, 'display_custom_field' );
-
-    global $post;
-
-    // Lekérjük az egyéni mező értékét
-    $custom_field_value = get_post_meta( $post->ID, '_custom_product_text_field', true );
-
-    if ( ! empty( $custom_field_value ) ) {
-        return '<div class="custom-field">' . esc_html( $custom_field_value ) . '</div>';
-    }
-
-    // Ha nincs érték, ne jelenítsünk meg semmit
-    return '';
-}
-add_shortcode( 'display_custom_field', 'display_custom_field_shortcode' );
-```
-Nézzünk meg egy utolsó opciót ami szintén a Shortcode-hoz tartozik, azonban felveszünk egy attributumot label néven. Maga a Shortcode definiála nem változik  **[display_custom_field]** de, most már kiegészíheted: **[display_custom_field label="Text field: "]**
-
-```
-// megjelenítés
-
-function display_custom_field_shortcode( $atts ) {
-    // Shortcode attribútum
-    $atts = shortcode_atts( array(
-        'label' => '', // Alapértelmezetten üres
-    ), $atts, 'display_custom_field' );
-
-    global $post;
-
-    // Lekérjük az egyéni mező értékét
-    $custom_field_value = get_post_meta( $post->ID, '_custom_product_text_field', true );
-
-    if ( ! empty( $custom_field_value ) ) {
-        // Label megjelenítése ha van megadva
-        $label_html = '';
-        if ( ! empty( $atts['label'] ) ) {
-            $label_html = '<span class="custom-field-label">' . esc_html( $atts['label'] ) . '</span>';
-        }
-
-        // A label és az érték megjelenítése
-        return '<div class="custom-field-wrapper">' . $label_html . '<span class="custom-field-value">' . esc_html( $custom_field_value ) . '</span></div>';
-    }
-
-    // Ha nincs érték, ne jelenítsünk meg semmit
-    return '';
-}
-add_shortcode( 'display_custom_field', 'display_custom_field_shortcode' );
-```
-
 ## Példa az összes típusú meta mezőre:
 
 ### Textarea típusú meta mező
@@ -463,12 +388,12 @@ Az eddigi példában szereplő kódokat mind az általános tabfülbe helyeztük
 * woocommerce_product_options_advanced (haladó)
 
 
-## Egyedi mezők frontend megjelenítése fix hook poziciókkal
+## Egyedi mezők frontend megjelenítése hook / shortcode formában
+Hasznos link a témához: https://www.businessbloomer.com/woocommerce-visual-hook-guide-single-product-page/
 
-### Text input meta készítése, mentése, frontend megjelenítése
+### text input meta, létrehozás / mentés / megjelenítés
 
 ```
-// egyszerű text input meta
 add_action( 'woocommerce_product_options_general_product_data', 'add_custom_text_field' );
 function add_custom_text_field() {
     woocommerce_wp_text_input( array(
@@ -481,83 +406,104 @@ function add_custom_text_field() {
         'default'     => '', 
     ));
 }
+```
 
-// text input meta mentése (egyszerűsített verzió)
-
+```
 add_action( 'woocommerce_process_product_meta', 'save_custom_text_field' );
 function save_custom_text_field( $post_id ) {
     if ( isset( $_POST['_custom_product_text_field'] ) ) {
         $custom_field_value = sanitize_text_field( $_POST['_custom_product_text_field'] );
-        update_post_meta( $post_id, '_custom_product_text_field', $custom_field_value );
+        
+        // Ha a mező üres, töröljük a metaadatot
+        if ( empty( $custom_field_value ) ) {
+            delete_post_meta( $post_id, '_custom_product_text_field' );
+        } else {
+            // Ha van érték, frissítjük a metaadatot
+            update_post_meta( $post_id, '_custom_product_text_field', $custom_field_value );
+        }
+    } else {
+        // Ha a mező nem létezik, töröljük a metaadatot
+        delete_post_meta( $post_id, '_custom_product_text_field' );
     }
 }
+```
+Az első példában automatizáljuk, azaz teljesen függetlenül mindentől vezérelten jelenítjük meg, például a kosárhoz adás form alatt. Ha máshol szeretnéd a termék single oldalán megjeleníteni, akkor cseréld le a *woocommerce_after_add_to_cart_form* 
+```
+// megjelenítés
 
-// megjelenítés a termék single oldalon a rövid leírás alatt
+add_action( 'woocommerce_after_add_to_cart_form', 'display_custom_field', 20 );
+function display_custom_field() {
+    global $post;
 
-add_action( 'woocommerce_single_product_summary', 'display_custom_text_field_on_product_page', 21 );
-function display_custom_text_field_on_product_page() {
-    global $product;
-    $custom_field_value = get_post_meta( $product->get_id(), '_custom_product_text_field', true );
+    // Lekérjük a saját metánk értékét
+    $custom_field_value = get_post_meta( $post->ID, '_custom_product_text_field', true );
 
-    if ( !empty($custom_field_value) ) {
-        echo '<div class="custom-text-field">' . esc_html( $custom_field_value ) . '</div>';
+    // Ellenőrizzük, hogy van-e érték a mezőben
+    if ( ! empty( $custom_field_value ) ) {
+        // Érték megjelenítése itt
+        echo '<div class="custom-field">';
+        echo '<p>' . esc_html( $custom_field_value ) . '</p>';
+        echo '</div>';
     }
 }
+```
+Shortcode alapú megleneítés
+
+```
+// megjelenítés
+
+function display_custom_field_shortcode( $atts ) {
+    $atts = shortcode_atts( array(), $atts, 'display_custom_field' );
+
+    global $post;
+
+    // Lekérjük az egyéni mező értékét
+    $custom_field_value = get_post_meta( $post->ID, '_custom_product_text_field', true );
+
+    if ( ! empty( $custom_field_value ) ) {
+        return '<div class="custom-field">' . esc_html( $custom_field_value ) . '</div>';
+    }
+
+    // Ha nincs érték, ne jelenítsünk meg semmit
+    return '';
+}
+add_shortcode( 'display_custom_field', 'display_custom_field_shortcode' );
+```
+A második shortcode variáns esetében felveszünk egy attributumot label néven. Maga a Shortcode definiálása (mint a shortcode neve) nem változik  **[display_custom_field]** de, most már kiegészíheted: **[display_custom_field label="Text field: "]**
+
+```
+// megjelenítés
+
+function display_custom_field_shortcode( $atts ) {
+    // Shortcode attribútum
+    $atts = shortcode_atts( array(
+        'label' => '', // Alapértelmezetten üres
+    ), $atts, 'display_custom_field' );
+
+    global $post;
+
+    // Lekérjük az egyéni mező értékét
+    $custom_field_value = get_post_meta( $post->ID, '_custom_product_text_field', true );
+
+    if ( ! empty( $custom_field_value ) ) {
+        // Label megjelenítése ha van megadva
+        $label_html = '';
+        if ( ! empty( $atts['label'] ) ) {
+            $label_html = '<span class="custom-field-label">' . esc_html( $atts['label'] ) . '</span>';
+        }
+
+        // A label és az érték megjelenítése
+        return '<div class="custom-field-wrapper">' . $label_html . '<span class="custom-field-value">' . esc_html( $custom_field_value ) . '</span></div>';
+    }
+
+    // Ha nincs érték, ne jelenítsünk meg semmit
+    return '';
+}
+add_shortcode( 'display_custom_field', 'display_custom_field_shortcode' );
 ```
 
 > [!WARNING]
 > Egyes pagebuilderek, mint pédául az Elementor esetében elképzelhető hogy a hook-on kell változtatni, vagy mivel ilyenkor adott a termékoldalak pagebuilder-el való szerkesztése, készíthetünk shortcode-ot a megjelenítéshez.
 
-A fenti kódban a megjelenítést a termék rövid leírás alá pozocionáltuk be a *add_action( 'woocommerce_single_product_summary', 'display_custom_text_field_on_product_page', 21 );* segítsgévéel. A WooCommerce számos további hook ot biztosít így például megjeleníthjük az egyedi mező értékét például a kosárhoz adás gomb alatt. **woocommerce_after_add_to_cart_form** segítségével a megjelenítendő adatunk a kosárhoz adás form alatt fog megjelenni. Csak cseréld ki a kódban szereplő **woocommerce_single_product_summary** erre: **woocommerce_after_add_to_cart_form**
-
-További hookok-at vizuálisan megtalálod itt:
-https://www.businessbloomer.com/woocommerce-visual-hook-guide-single-product-page/
-
-További két példa a megjelenítésre:
-
-### Label megjelenítése az érték előtt
-Ebben a példában, nem csak az értéket jelenítjük meg a frontend-en, hanem egy labelt is elé helyezünk. Teljes kód:
-
-```
-// egyszerű text input meta
-add_action( 'woocommerce_product_options_general_product_data', 'add_custom_text_field' );
-function add_custom_text_field() {
-    woocommerce_wp_text_input( array(
-        'id'          => '_custom_product_text_field', 
-        'label'       => __('Custom Text Field', 'woocommerce'), 
-        'placeholder' => __('Enter text here', 'woocommerce'),
-        'desc_tip'    => true, 
-        'description' => __('This is a custom text field.', 'woocommerce'), 
-        'type'        => 'text',
-        'default'     => '', 
-    ));
-}
-
-// text input meta mentése (egyszerűsített verzió)
-
-add_action( 'woocommerce_process_product_meta', 'save_custom_text_field' );
-function save_custom_text_field( $post_id ) {
-    if ( isset( $_POST['_custom_product_text_field'] ) ) {
-        $custom_field_value = sanitize_text_field( $_POST['_custom_product_text_field'] );
-        update_post_meta( $post_id, '_custom_product_text_field', $custom_field_value );
-    }
-}
-
-// megjelenítés
-
-add_action( 'woocommerce_after_add_to_cart_form', 'display_custom_text_field_with_label', 21 );
-function display_custom_text_field_with_label() {
-    global $product;
-    $custom_field_value = get_post_meta( $product->get_id(), '_custom_product_text_field', true );
-
-    if ( !empty($custom_field_value) ) {
-		echo '<div class="custom-meta-wrapper">'; // nyito div
-        echo '<span class="custom-text-field-label">Mező értéke: </span>';
-        echo '<span class="custom-text-field-value">' . esc_html( $custom_field_value ) . '</span>';
-		echo '</div>'; // záró div
-    }
-}
-
-```
 
 
