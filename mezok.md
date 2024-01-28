@@ -592,7 +592,7 @@ function display_custom_number_field() {
     }
 }
 ```
-### Shortcode alapú megleneítés -> [display_custom_field]
+### Shortcode alapú megleneítés -> [custom_number_field]
 ```
 function display_custom_number_field_shortcode( $atts ) {
     global $post;
@@ -610,7 +610,7 @@ function display_custom_number_field_shortcode( $atts ) {
 add_shortcode( 'custom_number_field', 'display_custom_number_field_shortcode' );
 ```
 
-A második shortcode a text-hez hasonlóan biztosít egy extra label attributumot
+A második shortcode a text-hez hasonlóan biztosít egy extra label attributumot -> [custom_number_field label="valami"]
 ```
 function display_custom_number_field_shortcode( $atts ) {
     $atts = shortcode_atts( array(
