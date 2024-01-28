@@ -62,6 +62,80 @@ function save_custom_text_field( $post_id ) {
     }
 }
 ```
+### Mező értékének megjelenítése
+Azonban sok esetben ezeket szeretnénk megjeleníteni a frontend-en, tehát itt még nem áll meg a dolog. Az első példában automatizáljuk, azaz teljesen függetlenül mindentől vezérelten jelenítjük meg, például a kosárhoz adás form alatt. Ha máshol szeretnéd a termék single oldlaán megjeleníteni, akkor cseréld le a *woocommerce_after_add_to_cart_form* 
+```
+// megjelenítés
+
+add_action( 'woocommerce_after_add_to_cart_form', 'display_custom_field', 20 );
+function display_custom_field() {
+    global $post;
+
+    // Lekérjük a saját metánk értékét
+    $custom_field_value = get_post_meta( $post->ID, '_custom_product_text_field', true );
+
+    // Ellenőrizzük, hogy van-e érték a mezőben
+    if ( ! empty( $custom_field_value ) ) {
+        // Érték megjelenítése itt
+        echo '<div class="custom-field">';
+        echo '<p>' . esc_html( $custom_field_value ) . '</p>';
+        echo '</div>';
+    }
+}
+```
+Azonban előfordul hogy kicsit speciálisabb a helyzet, adott egy page builder, és sokkal jobb lenne ha inkább shortcode állna a rendelkezésünkre. Az alábbi példa Shortcode ot készít az egyedi mezőnköz, ami aztán a termék single sablonban bárhol elhelyezhetünk. a shortcode: **[display_custom_field]**
+```
+// megjelenítés
+
+function display_custom_field_shortcode( $atts ) {
+    $atts = shortcode_atts( array(), $atts, 'display_custom_field' );
+
+    global $post;
+
+    // Lekérjük az egyéni mező értékét
+    $custom_field_value = get_post_meta( $post->ID, '_custom_product_text_field', true );
+
+    if ( ! empty( $custom_field_value ) ) {
+        return '<div class="custom-field">' . esc_html( $custom_field_value ) . '</div>';
+    }
+
+    // Ha nincs érték, ne jelenítsünk meg semmit
+    return '';
+}
+add_shortcode( 'display_custom_field', 'display_custom_field_shortcode' );
+```
+Nézzünk meg egy utolsó opciót ami szintén a Shortcode-hoz tartozik, azonban felveszünk egy attributumot label néven. Maga a Shortcode definiála nem változik  **[display_custom_field]** de, most már kiegészíheted: **[display_custom_field label="Text field: "]**
+
+```
+// megjelenítés
+
+function display_custom_field_shortcode( $atts ) {
+    // Shortcode attribútum
+    $atts = shortcode_atts( array(
+        'label' => '', // Alapértelmezetten üres
+    ), $atts, 'display_custom_field' );
+
+    global $post;
+
+    // Lekérjük az egyéni mező értékét
+    $custom_field_value = get_post_meta( $post->ID, '_custom_product_text_field', true );
+
+    if ( ! empty( $custom_field_value ) ) {
+        // Label megjelenítése ha van megadva
+        $label_html = '';
+        if ( ! empty( $atts['label'] ) ) {
+            $label_html = '<span class="custom-field-label">' . esc_html( $atts['label'] ) . '</span>';
+        }
+
+        // A label és az érték megjelenítése
+        return '<div class="custom-field-wrapper">' . $label_html . '<span class="custom-field-value">' . esc_html( $custom_field_value ) . '</span></div>';
+    }
+
+    // Ha nincs érték, ne jelenítsünk meg semmit
+    return '';
+}
+add_shortcode( 'display_custom_field', 'display_custom_field_shortcode' );
+```
 
 ## Példa az összes típusú meta mezőre:
 
