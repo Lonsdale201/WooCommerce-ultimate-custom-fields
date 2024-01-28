@@ -2,6 +2,17 @@
 
 * [Text mező létrehozása - mentése](#a-mezők-létrehozásakor-úgynevezett-attributumok-segítségével-tudjuk-meghatározni-az-egyes-tulajdonságokat)
 * [Textarea mező létrehozása - mentése](#textarea-típusú-meta-mező)
+* [Number (szám) mező létrehozása - mentése](#number-szám-típusú-meta-mező)
+* [Checkbox (jelölőnégyzet) mező létrehozása - mentése](#checkbox-jelölőnégyzet-típusú-meta-mező)
+* [Select (dropdown) mező létrehozása - mentése](#select-dropdown-típusú-meta-mező)
+* [Radio (Rádió gombok) mező létrehozása - mentése](#radio-rádió-gombok-típusú-meta-mező)
+* [Multiple select mező létrehozása - mentése - frontend megjelenítése](#speciális-multiple-select-mező)
+* [Dátum mező létrehozása - mentése](#dátum-alapú-mező)
+
+* [WooCommerce bakcend tab hookok](#woocommerce-tab-hookok)
+
+**Frontend megjelenítése**
+* [Text mező megjeleníétse](#text-input-meta-létrehozás--mentés--megjelenítés)
 
 
 ## A WooCommerce alapértelmezetten 6 típusú egyedi mezőt támogat úgynevezett built in módon. 
@@ -83,7 +94,7 @@ function add_custom_textarea_field() {
     ));
 }
 ```
-Textarea esetében már releváns lehet, hogy átengedjük-e a beírt html formázásokat. Ha nics rá szükséged, használd a példában megadott "sanitize_textarea_field". Ha szükséged van a html-re is akkor cseréld ki erre: *$custom_field_value = sanitize_textarea_field( $_POST['_custom_product_textarea'] );*
+Textarea esetében már releváns lehet, hogy átengedjük-e a beírt html formázásokat. Ha nics rá szükséged, használd a példában megadott "sanitize_textarea_field". Ha szükséged van a html-re is akkor cseréld ki erre: * $custom_field_value = wp_kses_post( $_POST['_custom_product_textarea'] );*
 ```
 add_action( 'woocommerce_process_product_meta', 'save_custom_textarea_field' );
 function save_custom_textarea_field( $post_id ) {
@@ -96,6 +107,7 @@ function save_custom_textarea_field( $post_id ) {
 }
 ```
 ### Number (szám) típusú meta mező
+Number mező létrehozása és mentése
 
 ```
 add_action( 'woocommerce_product_options_general_product_data', 'add_custom_number_field' );
@@ -111,6 +123,17 @@ function add_custom_number_field() {
             'min'   => '0'
         )
     ));
+}
+
+add_action( 'woocommerce_process_product_meta', 'save_custom_number_field' );
+function save_custom_number_field( $post_id ) {
+    if ( isset( $_POST['_custom_product_number_field'] ) ) {
+        // Tisztítás, és konvertálás
+        $custom_field_value = sanitize_text_field( $_POST['_custom_product_number_field'] );
+        $custom_field_value = floatval( $custom_field_value );
+
+        update_post_meta( $post_id, '_custom_product_number_field', $custom_field_value );
+    }
 }
 ```
 
