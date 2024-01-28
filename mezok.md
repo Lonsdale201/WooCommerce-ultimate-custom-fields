@@ -433,7 +433,7 @@ Hasznos link a témához: https://www.businessbloomer.com/woocommerce-visual-hoo
 > [!WARNING]
 > Egyes pagebuilderek, mint pédául az Elementor esetében elképzelhető hogy a hook-on kell változtatni, vagy mivel ilyenkor adott a termékoldalak pagebuilder-el való szerkesztése, készíthetünk shortcode-ot a megjelenítéshez.
 
-### text input meta, létrehozás / mentés / megjelenítés
+### Text input meta, létrehozás / mentés / megjelenítés
 
 ```
 add_action( 'woocommerce_product_options_general_product_data', 'add_custom_text_field' );
@@ -469,7 +469,8 @@ function save_custom_text_field( $post_id ) {
     }
 }
 ```
-Az első példában automatizáljuk, azaz teljesen függetlenül mindentől vezérelten jelenítjük meg, például a kosárhoz adás form alatt. Ha máshol szeretnéd a termék single oldalán megjeleníteni, akkor cseréld le a *woocommerce_after_add_to_cart_form* 
+### Hook használata -> *woocommerce_after_add_to_cart_form*  
+cseréld le ha mésikat szeretnél használni
 ```
 // megjelenítés
 
@@ -489,7 +490,7 @@ function display_custom_field() {
     }
 }
 ```
-Shortcode alapú megleneítés
+### Shortcode alapú megleneítés -> [display_custom_field]
 
 ```
 // megjelenítés
