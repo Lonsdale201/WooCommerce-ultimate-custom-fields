@@ -1,0 +1,32 @@
+// másold be a functions.php fájlba (Child theme!), vagy egy speciális code snippets pluginba // futtatásnak elég megadni, hogy csak admin oldalon.
+// Ez a kiegészítő a WooCommerce rendelések backend oldalra készít egy szűrőt. A kód egy SKU (cikkszám) input szűrőt biztosít.
+// Ez egy HPOS kompatibilis megoldás, azaz akkor használd ha a Webshopodban a HPOS engedélyezve van.
+
+// SKU alapú szűrő 
+add_action('woocommerce_order_list_table_restrict_manage_orders', function () {
+    $sku = isset($_GET['filter_by_sku']) ? wc_clean($_GET['filter_by_sku']) : '';
+    ?>
+    <input type="text" name="filter_by_sku" placeholder="<?php esc_attr_e('SKU', 'woocommerce'); ?>" value="<?php echo esc_attr($sku); ?>" />
+    <?php
+});
+
+// HPOS kompatibilis szűrés SKU alapján
+add_filter('woocommerce_orders_table_query_clauses', function ($clauses, $query_vars) {
+    global $wpdb;
+
+    if (!empty($_GET['filter_by_sku'])) {
+        $sku = wc_clean($_GET['filter_by_sku']);
+
+        $clauses['where'] .= $wpdb->prepare(" AND EXISTS (
+            SELECT 1 FROM {$wpdb->prefix}woocommerce_order_items
+            JOIN {$wpdb->prefix}woocommerce_order_itemmeta ON {$wpdb->prefix}woocommerce_order_items.order_item_id = {$wpdb->prefix}woocommerce_order_itemmeta.order_item_id
+            JOIN {$wpdb->prefix}postmeta ON {$wpdb->prefix}woocommerce_order_itemmeta.meta_value = {$wpdb->prefix}postmeta.post_id
+            WHERE {$wpdb->prefix}woocommerce_order_items.order_id = wp_wc_orders.id
+            AND {$wpdb->prefix}woocommerce_order_itemmeta.meta_key IN ('_product_id', '_variation_id')
+            AND {$wpdb->prefix}postmeta.meta_key = '_sku'
+            AND {$wpdb->prefix}postmeta.meta_value = %s
+        )", $sku);
+    }
+
+    return $clauses;
+}, 10, 2);
