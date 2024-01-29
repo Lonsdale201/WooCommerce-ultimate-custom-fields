@@ -1,0 +1,32 @@
+// másold be a functions.php fájlba (Child theme!), vagy egy speciális code snippets pluginba // futtatásnak elég megadni, hogy csak admin oldalon.
+// Ez a kiegészítő a WooCommerce rendelések backend oldalra készít egy szűrőt. A szűrő a rendelési státuszokat jeleníti meg, ()-ben a hozzájuk tartozó össz rendelés számát. A kiválasztott státuszra pedig rászűrhetsz, hogy csak a hozzá kapcsolódó rendeléseket listázza ki
+
+// HPOS kompatibilis - rendelési státusz szűrő
+add_action('woocommerce_order_list_table_restrict_manage_orders', function () {
+    global $wpdb;
+
+    // Rendelési státuszok és azokhoz tartozó rendelések számának lekérdezése
+    $order_statuses = wc_get_order_statuses();
+    $status_counts = $wpdb->get_results("
+        SELECT status, COUNT(*) as count
+        FROM {$wpdb->prefix}wc_orders
+        GROUP BY status", 
+        OBJECT_K
+    );
+
+    $current_filter = isset($_GET['filter_by_order_status']) ? $_GET['filter_by_order_status'] : '';
+    ?>
+    <select name="filter_by_order_status">
+        <option value=""><?php _e('Összes rendelési státusz', 'woocommerce'); ?></option>
+        <?php foreach ($order_statuses as $status_slug => $status_name) : 
+            $status_key = 'wc-' . substr($status_slug, 3); 
+            $count = isset($status_counts[$status_key]) ? $status_counts[$status_key]->count : 0;
+        ?>
+            <option value="<?php echo esc_attr(substr($status_slug, 3)); ?>" <?php selected($current_filter, substr($status_slug, 3)); ?>>
+                <?php echo esc_html($status_name) . " ($count)"; ?>
+            </option>
+        <?php endforeach; ?>
+    </select>
+    <?php
+});
+
