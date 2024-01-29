@@ -1,6 +1,6 @@
 // másold be a functions.php fájlba (Child theme!), vagy egy speciális code snippets pluginba // futtatásnak elég megadni, hogy csak admin oldalon.
 // Ez a kiegészítő a WooCommerce rendelések backend oldalra készít egy szűrőt. Ez a szűrő egy woocomemrce általi select2 ajax alapú, ami azt jelenti, hogy a keresőbe be kell írnod a temrék nevét, (viszont tudsz variációt is ezáltal szűrni)
-// Ez az előző HPOS szűrés fejletebb hatékonyabb változata, ami jobb, ha több terméked van a webshopban **[HPOS kompatibilis rendelések szűrés]**
+// Ez az előző HPOS szűrés fejletebb hatékonyabb változata, ami jobb, ha több terméked van a webshopban [HPOS kompatibilis rendelések szűrés]
 // Ez egy HPOS kompatibilis megoldás, azaz akkor használd ha a Webshopodban a HPOS engedélyezve van.
 
 // HPOS kompatibilis szűrés
