@@ -1,0 +1,38 @@
+// másold be a functions.php fájlba (Child theme!), vagy egy speciális code snippets pluginba // futtatásnak elég megadni, hogy csak admin oldalon.
+// Ez a kiegészítő a WooCommerce rendelések backend oldalra készít egy szűrőt. Ez a szűrő egy woocomemrce általi select2 ajax alapú, ami azt jelenti, hogy a keresőbe be kell írnod a temrék nevét, (viszont tudsz variációt is ezáltal szűrni)
+// Ez egy HPOS kompatibilis megoldás, azaz akkor használd ha a Webshopodban a HPOS engedélyezve van.
+
+// HPOS kompatibilis szűrés
+// Select2 ajax szűrő
+add_action('woocommerce_order_list_table_restrict_manage_orders', function () {
+    ?>
+    <select class="wc-product-search" name="filter_by_product_hpos" data-placeholder="<?php esc_attr_e('Search for a product&hellip;', 'woocommerce'); ?>" data-action="woocommerce_json_search_products_and_variations" data-allow_clear="true" style="width: 100%;">
+        <option value="<?php echo isset($_GET['filter_by_product_hpos']) ? esc_attr($_GET['filter_by_product_hpos']) : ''; ?>" selected="selected"><?php echo isset($_GET['filter_by_product_hpos']) ? esc_html(wc_get_product($_GET['filter_by_product_hpos'])->get_name()) : ''; ?></option>
+    </select>
+    <?php
+});
+
+// HPOS kompatibilis szűrés a termékek és variációk alapján
+add_filter('woocommerce_orders_table_query_clauses', function ($clauses, $query_vars) {
+    global $wpdb;
+
+    if (isset($_GET['filter_by_product_hpos']) && !empty($_GET['filter_by_product_hpos'])) {
+        $product_id = intval($_GET['filter_by_product_hpos']);
+
+        $product = wc_get_product($product_id);
+        $product_ids = $product->is_type('variable') ? $product->get_children() : array($product_id);
+
+        // SQL lekérdezés készítése a termék és variációk ID-k alapján
+        $placeholders = implode(', ', array_fill(0, count($product_ids), '%d'));
+        $clauses['where'] .= " AND EXISTS (
+            SELECT 1 FROM {$wpdb->prefix}woocommerce_order_items
+            JOIN {$wpdb->prefix}woocommerce_order_itemmeta ON {$wpdb->prefix}woocommerce_order_items.order_item_id = {$wpdb->prefix}woocommerce_order_itemmeta.order_item_id
+            WHERE {$wpdb->prefix}woocommerce_order_items.order_id = wp_wc_orders.id
+            AND {$wpdb->prefix}woocommerce_order_itemmeta.meta_key IN ('_product_id', '_variation_id')
+            AND {$wpdb->prefix}woocommerce_order_itemmeta.meta_value IN ($placeholders)
+        )";
+        $clauses['where'] = $wpdb->prepare($clauses['where'], $product_ids);
+    }
+
+    return $clauses;
+}, 10, 2);
