@@ -1,0 +1,28 @@
+// másold be a functions.php fájlba (Child theme!), vagy egy speciális code snippets pluginba // futtatásnak elég megadni, hogy csak admin oldalon.
+// Ez a kiegészítő a WooCommerce rendelések backend oldalra készít egy oszlopot. Az oszlopban megmutatja ha az adott rendelésnél használtak fel kupont , és az milyen értékű kedvezményt adott.
+
+// Új oszlop amely megmutatja ha a rendelésnél használtak fel kupont.
+add_filter('manage_woocommerce_page_wc-orders_columns', function ($columns) {
+    $columns['order_coupons'] = __('Kupon(ok)', 'woocommerce'); // oszlop neve
+    return $columns;
+}, 20);
+
+
+add_action('woocommerce_shop_order_list_table_custom_column', function ($column, $order) {
+    if ('order_coupons' === $column) {
+        $coupons = $order->get_used_coupons();
+
+        if (!empty($coupons)) {
+            echo '<ul>';
+            foreach ($coupons as $coupon_code) {
+                $coupon = new WC_Coupon($coupon_code);
+                $discount_amount = $coupon->get_amount();
+                $edit_link = get_edit_post_link($coupon->get_id());
+
+                echo '<li><a href="' . esc_url($edit_link) . '" target="_blank">' . esc_html($coupon_code) . '(-' . wc_price($discount_amount) . ')</a></li>';
+            }
+            echo '</ul>';
+        }
+    }
+}, 10, 2);
+
