@@ -6,24 +6,32 @@
 // HPOS kompatibilis szűrés
 // Select2 ajax szűrő
 add_action('woocommerce_order_list_table_restrict_manage_orders', function () {
+    $selected_product_id = isset($_GET['filter_by_product_hpos']) && !empty($_GET['filter_by_product_hpos']) ? absint($_GET['filter_by_product_hpos']) : '';
+    $selected_product = $selected_product_id ? wc_get_product($selected_product_id) : false;
     ?>
     <select class="wc-product-search" name="filter_by_product_hpos" data-placeholder="<?php esc_attr_e('Search for a product&hellip;', 'woocommerce'); ?>" data-action="woocommerce_json_search_products_and_variations" data-allow_clear="true" style="width: 100%;">
-        <option value="<?php echo isset($_GET['filter_by_product_hpos']) ? esc_attr($_GET['filter_by_product_hpos']) : ''; ?>" selected="selected"><?php echo isset($_GET['filter_by_product_hpos']) ? esc_html(wc_get_product($_GET['filter_by_product_hpos'])->get_name()) : ''; ?></option>
+        <?php if ($selected_product_id && $selected_product) : ?>
+            <option value="<?php echo esc_attr($selected_product_id); ?>" selected="selected"><?php echo esc_html($selected_product->get_name()); ?></option>
+        <?php endif; ?>
     </select>
     <?php
 });
+
 
 // HPOS kompatibilis szűrés a termékek és variációk alapján
 add_filter('woocommerce_orders_table_query_clauses', function ($clauses, $query_vars) {
     global $wpdb;
 
-    if (isset($_GET['filter_by_product_hpos']) && !empty($_GET['filter_by_product_hpos'])) {
+    if (!empty($_GET['filter_by_product_hpos'])) {
         $product_id = intval($_GET['filter_by_product_hpos']);
 
         $product = wc_get_product($product_id);
+        if (!$product) {
+            return $clauses;
+        }
+
         $product_ids = $product->is_type('variable') ? $product->get_children() : array($product_id);
 
-        // SQL lekérdezés készítése a termék és variációk ID-k alapján
         $placeholders = implode(', ', array_fill(0, count($product_ids), '%d'));
         $clauses['where'] .= " AND EXISTS (
             SELECT 1 FROM {$wpdb->prefix}woocommerce_order_items
