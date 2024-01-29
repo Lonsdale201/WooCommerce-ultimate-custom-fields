@@ -1,0 +1,35 @@
+// másold be a functions.php fájlba (Child theme!), vagy egy speciális code snippets pluginba // futtatásnak elég megadni, hogy csak admin oldalon.
+// Ez a kiegészítő a WooCommerce rendelések backend oldalra készít egy új oszlopot. Az oszlop az adott rendelésnél kiírja a megvásárolt termék tételeket. (linkelve)
+
+
+add_filter('manage_woocommerce_page_wc-orders_columns', 'custom_shop_order_column', 20);
+function custom_shop_order_column($columns) {
+    $columns['order_products'] = __('Megvásárolt termékek', 'woocommerce'); // Oszlop neve
+    return $columns;
+}
+
+add_action('woocommerce_shop_order_list_table_custom_column', function ($column, $order) {
+    if ('order_products' !== $column) {
+        return;
+    }
+
+    echo '<ul>';
+    foreach ($order->get_items() as $item_id => $item) {
+        $product = $item->get_product();
+
+        if (is_a($product, 'WC_Product')) {
+            $product_id = $product->get_id();
+
+            if ($product->is_type('variation')) {
+                $product_id = $product->get_parent_id();
+            }
+
+            $edit_link = get_edit_post_link($product_id);
+            echo '<li><a href="' . esc_url($edit_link) . '" target="_blank">' . esc_html($item->get_name()) . ' (' . $item->get_quantity() . ')</a></li>';
+        } else {
+            echo '<li>' . esc_html($item->get_name()) . ' (' . $item->get_quantity() . ')</li>';
+        }
+    }
+    echo '</ul>';
+}, 10, 2);
+
