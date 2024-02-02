@@ -1,4 +1,5 @@
 // másold be a functions.php fájlba (Child theme!), vagy egy speciális code snippets pluginba. Írd át a termékkategória azonosítót, és a fix kedvezmény mértékét.
+// ha a termékek a kiválasztott kategóriából vannak, és legalább kettő eltérő termék van, akkor az olcsóbbra ad egy fix összegű kedvezményt
 
 function apply_discount_on_specific_category( $cart ) {
     if ( is_admin() && ! defined( 'DOING_AJAX' ) )
