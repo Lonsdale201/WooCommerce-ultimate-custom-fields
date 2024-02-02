@@ -1,0 +1,31 @@
+// másold be a functions.php fájlba (Child theme!), vagy egy speciális code snippets pluginba. Írd át a termékkategória azonosítót, és a fix kedvezmény mértékét.
+
+function apply_discount_on_specific_category( $cart ) {
+    if ( is_admin() && ! defined( 'DOING_AJAX' ) )
+        return;
+
+    // Adjuk meg a kategória azonosítót, és a kedvezmény mértékét
+    $category_id = 58; // Termékkategória ID
+    $discount = 1000; // Fix összegű kedvezmény ez pl 1000ft-nak felel meg.
+
+    $category_count = 0;
+    $cheapest_product_price = null;
+    $cheapest_cart_item_key = null;
+
+    
+    foreach ( $cart->get_cart() as $cart_item_key => $cart_item ) {
+        if ( has_term( $category_id, 'product_cat', $cart_item['product_id'] ) ) {
+            $category_count++;
+            if ( $cheapest_product_price === null || $cart_item['data']->get_price() < $cheapest_product_price ) {
+                $cheapest_product_price = $cart_item['data']->get_price();
+                $cheapest_cart_item_key = $cart_item_key;
+            }
+        }
+    }
+
+    if ( $category_count >= 2 && $cheapest_cart_item_key !== null ) {
+        $cart->cart_contents[ $cheapest_cart_item_key ]['data']->set_price( $cheapest_product_price - $discount );
+    }
+}
+
+add_action( 'woocommerce_before_calculate_totals', 'apply_discount_on_specific_category' );
