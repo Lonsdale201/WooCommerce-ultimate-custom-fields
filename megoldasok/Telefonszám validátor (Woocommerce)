@@ -1,0 +1,41 @@
+// Másold be a kódot a child theme functions.php-ba vagy egy specifikus code snippets pluginba (például FluentSNippets)
+
+function load_inputmask() {
+    wp_enqueue_script('inputmask', 'https://cdnjs.cloudflare.com/ajax/libs/jquery.inputmask/5.0.8/jquery.inputmask.min.js', array('jquery'), '5.0.8', true);
+}
+add_action('wp_enqueue_scripts', 'load_inputmask');
+
+function add_inputmask_to_billing_phone() {
+    if (is_checkout()) {
+        ?>
+        <script type="text/javascript">
+           jQuery(document).ready(function($) {
+    $('#billing_phone').inputmask('+36 99 999 9999', { "clearIncomplete": false });
+
+    $('#billing_phone').after('<div class="phone-error-message" style="display:none;color:red;"></div>');
+
+    $('#billing_phone').on('blur', function() {
+        var phoneValue = $(this).val();
+        var phonePattern = /^\+36 \d{2} \d{3} \d{4}$/;
+        if (!phonePattern.test(phoneValue)) {
+            $('.phone-error-message').text('Adja meg a telefonszámot a következő formátumban: +36 30 123 4567.').show();
+        } else {
+            $('.phone-error-message').hide();
+        }
+    });
+});
+
+        </script>
+        <?php
+    }
+}
+add_action('wp_footer', 'add_inputmask_to_billing_phone');
+
+function validate_billing_phone($data, $errors) {
+    $phone_pattern = '/^\+36 \d{2} \d{3} \d{4}$/';
+
+    if (!isset($data['billing_phone']) || !preg_match($phone_pattern, $data['billing_phone'])) {
+        $errors->add('validation', 'Hiba! Adja meg a telefonszámot a következő formátumban: +36 30 123 4567.');
+    }
+}
+add_action('woocommerce_after_checkout_validation', 'validate_billing_phone', 10, 2);
