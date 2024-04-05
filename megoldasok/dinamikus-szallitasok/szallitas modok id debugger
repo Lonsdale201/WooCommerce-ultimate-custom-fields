@@ -1,4 +1,4 @@
-// másold be a functions.php fájlba (Child theme!), vagy egy speciális code snippets pluginba // futtatásnak elég megadni, hogy csak admin oldalon.
+// másold be a functions.php fájlba (Child theme!), vagy egy speciális code snippets pluginba futtatásnak elég megadni, hogy csak admin oldalon.
 // Ez egy debugger kód, ami a wp-adminban egy értesítő ablakban megjeleníti az elérhető szállításokat, azonosítóval és névvel együtt. Hasznos ha kód szinten szeretnél korlátozásokat bevezetni az egyes szállítási módokhoz
 
 
