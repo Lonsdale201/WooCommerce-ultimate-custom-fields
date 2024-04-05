@@ -1,0 +1,31 @@
+// Másold be a functions.php fájlba (Child theme!), vagy egy speciális code snippets pluginba.
+// Ez a kód egy megadott szállítási osztály esetében a beállított szállítási mód / vagy módokat nem engedélyezni használni a vásárló részére.
+// Ne felejtsd el, hogy a szállítási osztály slug-ot add meg, ne a nevét. (Keresőbarát név)
+// Hogyan tudod megnézni a szállítási módodhoz tartozó azonosítókat? Itt egy segítség hozzá: https://github.com/Lonsdale201/WooCommerce-ultimate-custom-fields/blob/main/megoldasok/dinamikus-szallitasok/szallitas%20modok%20id%20debugger
+
+add_filter('woocommerce_package_rates', 'custom_shipping_methods_restriction_based_on_shipping_class', 10, 2);
+
+function custom_shipping_methods_restriction_based_on_shipping_class($rates, $package) {
+    $restricted_shipping_class = 'basic'; // A korlátozni kívánt szállítási osztály slug-ja
+    $restricted_shipping_methods = ['flat_rate:3']; // Korlátozni kívánt szállítási módok
+
+    $restricted_product_in_cart = false;
+    foreach ($package['contents'] as $item) {
+        $product = $item['data'];
+        $shipping_class = $product->get_shipping_class();
+        if ($shipping_class == $restricted_shipping_class) {
+            $restricted_product_in_cart = true;
+            break;
+        }
+    }
+
+    if ($restricted_product_in_cart) {
+        foreach ($restricted_shipping_methods as $method_id) {
+            if (isset($rates[$method_id])) {
+                unset($rates[$method_id]);
+            }
+        }
+    }
+
+    return $rates;
+}
