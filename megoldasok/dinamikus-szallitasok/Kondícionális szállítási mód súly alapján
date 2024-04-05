@@ -1,0 +1,25 @@
+// másold be a functions.php fájlba (Child theme!), vagy egy speciális code snippets pluginba.
+// Ez a kód egy megadott súlyhatár felett bizonyos szállítási módokat letilt. A súlykorlátot, és a szállítási módokat lentebb a kódban be tudod állítani.
+// Hogyan tudod megnézni a szállítási módodhoz tartozó azonosítókat? Itt egy segítség hozzá: https://github.com/Lonsdale201/WooCommerce-ultimate-custom-fields/blob/main/megoldasok/dinamikus-szallitasok/szallitas%20modok%20id%20debugger
+
+
+add_filter('woocommerce_package_rates', 'exclude_shipping_methods_based_on_cart_weight', 10, 2);
+
+function exclude_shipping_methods_based_on_cart_weight($available_gateways, $package) {
+    $weight_limit = 10; // A súlykorlát, ami felett bizonyos szállítási módokat kizárunk
+    $exclude_shipping_methods = ['flat_rate:3']; // A kizárni kívánt szállítási módok azonosítói
+    
+    $cart_weight = 0;
+    foreach ($package['contents'] as $item) {
+        $product = $item['data'];
+        $cart_weight += $product->get_weight() * $item['quantity'];
+    }
+
+    if ($cart_weight > $weight_limit) {
+        foreach ($exclude_shipping_methods as $method_id) {
+            unset($available_gateways[$method_id]);
+        }
+    }
+
+    return $available_gateways;
+}
