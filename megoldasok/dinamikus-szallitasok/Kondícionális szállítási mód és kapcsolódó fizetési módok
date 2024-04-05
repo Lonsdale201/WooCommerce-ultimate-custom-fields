@@ -1,4 +1,4 @@
-// másold be a functions.php fájlba (Child theme!), vagy egy speciális code snippets pluginba futtatásnak elég megadni, hogy csak admin oldalon.
+// másold be a functions.php fájlba (Child theme!), vagy egy speciális code snippets pluginba.
 // Ez a kód egy megadott szállítási mód választása esetén korlátozni tudja a vásárló számára, hogy milyen fizetési módokat tud használni. A fizetési módoknál vesszővel elválasztva többet is megadhatsz.
 // Hogyan tudod megnézni a szállítási módodhoz tartozó azonosítókat? Itt egy segítség hozzá: https://github.com/Lonsdale201/WooCommerce-ultimate-custom-fields/blob/main/megoldasok/dinamikus-szallitasok/szallitas%20modok%20id%20debugger
 // Hogyan tudod megnézni a fizetési módodhoz tartozó azonosítókat? Itt egy segítség hozzá: https://github.com/Lonsdale201/WooCommerce-ultimate-custom-fields/blob/main/megoldasok/dinamikus-szallitasok/fizetesi%20modok%20debugger
