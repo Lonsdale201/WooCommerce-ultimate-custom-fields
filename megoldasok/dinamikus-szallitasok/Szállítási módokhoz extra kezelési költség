@@ -1,0 +1,33 @@
+// másold be a functions.php fájlba (Child theme!), vagy egy speciális code snippets pluginba.
+// Ez a kód megadott szállítási módokhoz extra kezelési költséget ad hozzá
+// Hogyan tudod megnézni a szállítási módodhoz tartozó azonosítókat? Itt egy segítség hozzá: https://github.com/Lonsdale201/WooCommerce-ultimate-custom-fields/blob/main/megoldasok/dinamikus-szallitasok/szallitas%20modok%20id%20debugger
+
+
+add_action('woocommerce_cart_calculate_fees', 'add_handling_fee_based_on_shipping_method', 10);
+
+function add_handling_fee_based_on_shipping_method() {
+    if (is_admin() && !defined('DOING_AJAX')) {
+        return;
+    }
+
+    if (null === WC()->session) {
+        return;
+    }
+
+    $chosen_shipping_methods = WC()->session->get('chosen_shipping_methods');
+    $chosen_shipping_method = !empty($chosen_shipping_methods) ? $chosen_shipping_methods[0] : '';
+
+    // Adjuk meg azokat a szállítási módokat, amelyek esetében extra díjat felszámolunk
+    $specific_shipping_method_ids = [
+        'flat_rate:3',
+        // További szállítási módokat itt tudod hozzáadni
+    ];
+
+    if (in_array($chosen_shipping_method, $specific_shipping_method_ids)) {
+        $fee_name = 'Kezelési költség'; // Az extra díj neve
+        $fee_amount = 500; // Itt add meg az extra díj összegét
+        $taxable = true; // Az extra díj adóköteles-e; állítsd 'false'-ra, ha nem adóköteles
+
+        WC()->cart->add_fee($fee_name, $fee_amount, $taxable);
+    }
+}
