@@ -1,0 +1,20 @@
+// másold be a functions.php fájlba (Child theme!), vagy egy speciális code snippets pluginba.
+// Ezzel a kóddal egy extra szöveges információt jeleníthetsz meg a pénztár oldalon, ha egy bizonyos szállítási módot választottak.
+// Hogyan tudod megnézni a szállítási módodhoz tartozó azonosítókat? Itt egy segítség hozzá: https://github.com/Lonsdale201/WooCommerce-ultimate-custom-fields/blob/main/megoldasok/dinamikus-szallitasok/szallitas%20modok%20id%20debugger
+
+add_action('woocommerce_review_order_before_submit', 'custom_shipping_message_on_checkout');
+
+function custom_shipping_message_on_checkout() {
+    if (null === WC()->session) {
+        return;
+    }
+
+    $chosen_shipping_methods = WC()->session->get('chosen_shipping_methods');
+    $chosen_shipping_method = !empty($chosen_shipping_methods) ? $chosen_shipping_methods[0] : '';
+
+    $specific_shipping_method_id = 'flat_rate:6'; // Szállítási mód azonosító
+
+    if ($chosen_shipping_method == $specific_shipping_method_id) {
+        echo '<div class="woocommerce-info custom-shipping-info" style="clear:both;">Figyelem! Ha <span class="shipping-method-name">XYZ szállítási módot</span> választod, készülj fel arra, hogy <span class="delivery-time-warning">3 hét</span> is lehet a kiszállítási idő.</div>';
+    }
+}
