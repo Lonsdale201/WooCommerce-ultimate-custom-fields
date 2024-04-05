@@ -1,0 +1,25 @@
+// másold be a functions.php fájlba (Child theme!), vagy egy speciális code snippets pluginba.
+// ha van beállítva ingyenes szállítás, és a vásárló számára elérhető, minden más szállítási módot elrejt.
+
+add_filter('woocommerce_package_rates', 'hide_other_shipping_methods_when_free_is_available', 100);
+
+function hide_other_shipping_methods_when_free_is_available($rates) {
+    $free_shipping_available = false;
+
+    foreach ($rates as $rate_id => $rate) {
+        if ('free_shipping' === $rate->method_id) {
+            $free_shipping_available = true;
+            break;
+        }
+    }
+
+    if ($free_shipping_available) {
+        foreach ($rates as $rate_id => $rate) {
+            if ('free_shipping' !== $rate->method_id) {
+                unset($rates[$rate_id]);
+            }
+        }
+    }
+
+    return $rates;
+}
