@@ -1,0 +1,31 @@
+// Ez egy debugger kód, ami a wp-adminban egy értesítő ablakban megjeleníti az elérhető szállításokat, azonosítóval és névvel együtt. Hasznos ha kód szinten szeretnél korlátozásokat bevezetni az egyes szállítási módokhoz
+
+
+
+add_action('admin_notices', 'listazas_szallitasi_modok_azonositok');
+
+function listazas_szallitasi_modok_azonositok() {
+    if (!is_admin()) {
+        return;
+    }
+
+    $szallitasi_zonak = WC_Shipping_Zones::get_zones();
+    $szallitasi_zonak[] = array('id' => 0); 
+
+    echo '<div class="notice notice-info">';
+    echo '<p><strong>Elérhető szállítási módok azonosítói és nevei:</strong></p>';
+    echo '<ul>';
+
+    foreach ($szallitasi_zonak as $zona) {
+        $zona_id = $zona['id'];
+        $szallitasi_modok = WC_Shipping_Zones::get_zone($zona_id)->get_shipping_methods(true);
+        foreach ($szallitasi_modok as $szallitasi_mod) {
+            echo '<li>';
+            echo 'Zóna ID: ' . $zona_id . ', Szállítási mód: ' . $szallitasi_mod->id . ', Azonosító (instance ID): ' . $szallitasi_mod->instance_id . ', Név: ' . $szallitasi_mod->title;
+            echo '</li>';
+        }
+    }
+
+    echo '</ul>';
+    echo '</div>';
+}
