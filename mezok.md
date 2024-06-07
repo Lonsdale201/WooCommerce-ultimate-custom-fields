@@ -8,7 +8,7 @@
 * [Radio (Rádió gombok) mező létrehozása - mentése](#radio-rádió-gombok-típusú-meta-mező)
 * [Multiple select mező létrehozása - mentése - frontend megjelenítése](#speciális-multiple-select-mező)
 * [Dátum mező létrehozása - mentése](#dátum-alapú-mező)
-* [WooSelect multiple ajax termékválasztó mező létrehozása](#WooSelect Multiple termékválasztó mező)
+* [WooSelect multiple ajax termékválasztó mező létrehozása](#wooselect-multiple-termékválasztó-mező)
 
 * [WooCommerce bakcend tab hookok](#woocommerce-tab-hookok)
 
@@ -634,7 +634,7 @@ function display_custom_number_field_shortcode( $atts ) {
 add_shortcode( 'custom_number_field', 'display_custom_number_field_shortcode' );
 ```
 
-### #WooSelect Multiple termékválasztó mező
+### WooSelect Multiple termékválasztó mező
 
 ```
 function add_custom_product_meta_field() {
