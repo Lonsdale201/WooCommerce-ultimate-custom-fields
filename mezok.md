@@ -8,6 +8,7 @@
 * [Radio (Rádió gombok) mező létrehozása - mentése](#radio-rádió-gombok-típusú-meta-mező)
 * [Multiple select mező létrehozása - mentése - frontend megjelenítése](#speciális-multiple-select-mező)
 * [Dátum mező létrehozása - mentése](#dátum-alapú-mező)
+* [WooSelect multiple ajax termékválasztó mező létrehozása](#WooSelect Multiple termékválasztó mező)
 
 * [WooCommerce bakcend tab hookok](#woocommerce-tab-hookok)
 
@@ -631,4 +632,45 @@ function display_custom_number_field_shortcode( $atts ) {
     return '';
 }
 add_shortcode( 'custom_number_field', 'display_custom_number_field_shortcode' );
+```
+
+### #WooSelect Multiple termékválasztó mező
+
+```
+function add_custom_product_meta_field() {
+    global $post;
+    ?>
+    <div class="options_group">
+        <p class="form-field custom_product_meta_field">
+            <label for="extra_products"><?php _e('Extra termékek', 'woocommerce'); ?></label>
+            <select class="wc-product-search" multiple="multiple" style="width: 50%;" id="extra_products" name="extra_products[]" data-placeholder="<?php esc_attr_e('Válasszon termékeket', 'woocommerce'); ?>" data-action="woocommerce_json_search_products_and_variations">
+                <?php
+                $extra_products = get_post_meta($post->ID, '_extra_products', true);
+                if (!empty($extra_products)) {
+                    $extra_products = explode(',', $extra_products);
+                    foreach ($extra_products as $product_id) {
+                        $product = wc_get_product($product_id);
+                        if (is_object($product)) {
+                            echo '<option value="' . esc_attr($product_id) . '" selected="selected">' . esc_html($product->get_name()) . '</option>';
+                        }
+                    }
+                }
+                ?>
+            </select>
+        </p>
+    </div>
+    <?php
+}
+add_action('woocommerce_product_options_pricing', 'add_custom_product_meta_field');
+
+// Save the custom meta field
+function save_custom_product_meta_field($post_id) {
+    if (isset($_POST['extra_products'])) {
+        $extra_products = array_map('sanitize_text_field', $_POST['extra_products']);
+        update_post_meta($post_id, '_extra_products', implode(',', $extra_products));
+    } else {
+        delete_post_meta($post_id, '_extra_products');
+    }
+}
+add_action('woocommerce_process_product_meta', 'save_custom_product_meta_field');
 ```
