@@ -1,0 +1,65 @@
+// másold be a functions.php fájlba (Child theme!), vagy egy speciális code snippets pluginba például FluentSnippets
+
+
+function wc_minimum_order_amount() {
+    return 5000; // minimális összeg meghatározása
+}
+
+
+function wc_minimum_order_amount_check() {
+    $minimum = wc_minimum_order_amount();
+    $cart_total = WC()->cart->subtotal; 
+
+    if ( $cart_total < $minimum && is_cart() ) {
+        wc_print_notice( 
+            sprintf( 'A rendelés minimális összege %s, jelenlegi összege %s.',
+                wc_price( $minimum ),
+                wc_price( $cart_total )
+            ), 'error' 
+        );
+    }
+}
+add_action( 'woocommerce_check_cart_items', 'wc_minimum_order_amount_check' );
+
+function wc_redirect_checkout_minimum_order_amount() {
+    $minimum = wc_minimum_order_amount();
+    $cart_total = WC()->cart->subtotal; 
+
+    if ( $cart_total < $minimum && is_checkout() && ! is_cart() && ! is_wc_endpoint_url( 'order-received' ) ) {
+        wp_safe_redirect( wc_get_cart_url() );
+        exit;
+    }
+}
+add_action( 'template_redirect', 'wc_redirect_checkout_minimum_order_amount' );
+
+
+function wc_custom_min_order_script() {
+    if ( is_cart() || is_checkout() ) {
+        ?>
+        <script type="text/javascript">
+            jQuery(function($) {
+                var minimumAmount = <?php echo wc_minimum_order_amount(); ?>;
+
+                function checkCartTotal() {
+                    var cartTotal = parseFloat($('.order-total .woocommerce-Price-amount').first().text().replace(/[^0-9.]/g, ''));
+                    if (cartTotal < minimumAmount) {
+                        if (!$('.woocommerce-error').length) {
+                            $('.woocommerce-cart-form').after('<div class="woocommerce-error">A rendelés minimális összege ' + minimumAmount + ' Ft. Jelenlegi összege ' + cartTotal + ' Ft.</div>');
+                        }
+                        $('button.checkout-button, #place_order').prop('disabled', true);
+                    } else {
+                        $('.woocommerce-error').remove();
+                        $('button.checkout-button, #place_order').prop('disabled', false);
+                    }
+                }
+
+                checkCartTotal();
+
+                $(document.body).on('updated_cart_totals updated_checkout', checkCartTotal);
+            });
+        </script>
+        <?php
+    }
+}
+add_action( 'wp_footer', 'wc_custom_min_order_script' );
+
