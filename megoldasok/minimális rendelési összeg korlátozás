@@ -1,8 +1,8 @@
 // másold be a functions.php fájlba (Child theme!), vagy egy speciális code snippets pluginba például FluentSnippets
-
+// Ez a kód a megadott összeget figyeli, amíg nem éri el, a vásárló nem tud tovább lépni a kosár oldalról, és automatikusan egy hibaüzenetet kap arról, hogy miért nem. A szöveg alább a 47. sorban átírható.
 
 function wc_minimum_order_amount() {
-    return 5000; // minimális összeg meghatározása
+    return 5000; // minimális összeg meghatározása, írd át a saját értékedre
 }
 
 
