@@ -1,0 +1,171 @@
+// Másold be a kódot a child theme functions.php-ba vagy egy specifikus code snippets pluginba (például FluentSNippets)
+// Ez egy kompakt kód, ami a termékekhez a termék szerkesztő részhez, egy új tabfület: Esemény-néven hoz létre, benne pedig az alábbi meta adatokat: Naptár cím, Kezdési dátum, befejezési dátum, helyszín cím, leírás
+// Amennyiben egy terméknél kitöltöd a szükséges adatokat, (legalább a dátumokat), akkor a köszönő oldal, és a view-order végponton egy add hozzá a google naptárhoz gomb jelenik meg. Rákattintva pedig az általad definiált paramterekkel a felhasználó az eseményt hozzá tudja adni
+// a google naptárhoz
+// css classok: .google-calendar-container .google-calendar-title .google-calendar-button
+// Meta IDs: ic_event_calendar_title ic_event_start_date ic_event_end_date ic_event_location ic_event_description
+
+// Esemény tabfül
+add_filter('woocommerce_product_data_tabs', 'add_event_tab');
+function add_event_tab($tabs) {
+    $tabs['event_tab'] = array(
+        'label'    => __('Esemény', 'woocommerce'),
+        'target'   => 'event_tab_data',
+        'class'    => array('show_if_simple', 'show_if_variable'),
+        'priority' => 21,
+    );
+    return $tabs;
+}
+
+add_action('woocommerce_product_data_panels', 'add_event_tab_fields');
+function add_event_tab_fields() {
+    global $post;
+
+    echo '<div id="event_tab_data" class="panel woocommerce_options_panel">';
+
+    // Naptár cím
+    woocommerce_wp_text_input(array(
+        'id'          => 'ic_event_calendar_title',
+        'label'       => __('Naptár cím', 'woocommerce'),
+        'placeholder' => __('Adja meg az esemény címét', 'woocommerce'),
+        'type'        => 'text',
+        'value'       => get_post_meta($post->ID, 'ic_event_calendar_title', true),
+        'desc_tip'    => true,
+        'description' => __('Ez lesz a naptár létrehozásakor a cím. A %s segítségével automatikusan a termék nevét fogja behelyettesíteni', 'woocommerce'),
+    ));
+
+    // Kezdési dátum
+    woocommerce_wp_text_input(array(
+        'id'          => 'ic_event_start_date',
+        'label'       => __('Kezdési dátum', 'woocommerce'),
+        'placeholder' => __('YYYY-MM-DD', 'woocommerce'),
+        'type'        => 'date',
+        'value'       => get_post_meta($post->ID, 'ic_event_start_date', true) ? date('Y-m-d', get_post_meta($post->ID, 'ic_event_start_date', true)) : '',
+        'desc_tip'    => false,
+        'description' => __('Add meg, hogy mikor kezdődik az esemény', 'woocommerce'),
+    ));
+
+    // Befejezési dátum
+    woocommerce_wp_text_input(array(
+        'id'          => 'ic_event_end_date',
+        'label'       => __('Befejezési dátum', 'woocommerce'),
+        'placeholder' => __('YYYY-MM-DD', 'woocommerce'),
+        'type'        => 'date',
+        'value'       => get_post_meta($post->ID, 'ic_event_end_date', true) ? date('Y-m-d', get_post_meta($post->ID, 'ic_event_end_date', true)) : '',
+        'desc_tip'    => false,
+        'description' => __('Add meg, hogy mikor fejeződik be az esemény', 'woocommerce'),
+    ));
+
+    // Helyszín cím
+    woocommerce_wp_text_input(array(
+        'id'          => 'ic_event_location',
+        'label'       => __('Helyszín cím', 'woocommerce'),
+        'placeholder' => __('Adja meg a helyszín címét', 'woocommerce'),
+        'type'        => 'text',
+        'value'       => get_post_meta($post->ID, 'ic_event_location', true),
+        'desc_tip'    => true,
+        'description' => __('Add meg, hogy mi az esemény helyszíne', 'woocommerce'),
+    ));
+
+    // Leírás
+    woocommerce_wp_textarea_input(array(
+        'id'          => 'ic_event_description',
+        'label'       => __('Leírás', 'woocommerce'),
+        'placeholder' => __('Adja meg az esemény leírását', 'woocommerce'),
+        'value'       => get_post_meta($post->ID, 'ic_event_description', true),
+        'desc_tip'    => true,
+        'description' => __('Add meg a leírást. Ez fog megjelenni a google naptárban a leírás mezőben', 'woocommerce'),
+    ));
+
+    echo '</div>';
+
+    // JS a kezdési és befejezési dátum ellenőrzéséhez
+    ?>
+    <script type="text/javascript">
+        jQuery(document).ready(function($) {
+            $('#ic_event_start_date, #ic_event_end_date').on('change', function() {
+                var startDate = $('#ic_event_start_date').val();
+                var endDate = $('#ic_event_end_date').val();
+
+                if (startDate && endDate && new Date(startDate) > new Date(endDate)) {
+                    alert('<?php _e('A befejezési dátum nem lehet korábbi, mint a kezdési dátum.', 'woocommerce'); ?>');
+                    $('#ic_event_end_date').val('');
+                }
+            });
+        });
+    </script>
+    <?php
+}
+
+add_action('woocommerce_process_product_meta', 'save_event_fields');
+function save_event_fields($post_id) {
+    if (isset($_POST['ic_event_calendar_title'])) {
+        update_post_meta($post_id, 'ic_event_calendar_title', sanitize_text_field($_POST['ic_event_calendar_title']));
+    }
+    if (isset($_POST['ic_event_start_date']) && !empty($_POST['ic_event_start_date'])) {
+        $start_date = strtotime(sanitize_text_field($_POST['ic_event_start_date']));
+        update_post_meta($post_id, 'ic_event_start_date', $start_date);
+    } else {
+        delete_post_meta($post_id, 'ic_event_start_date');
+    }
+    if (isset($_POST['ic_event_end_date']) && !empty($_POST['ic_event_end_date'])) {
+        $end_date = strtotime(sanitize_text_field($_POST['ic_event_end_date']));
+        update_post_meta($post_id, 'ic_event_end_date', $end_date);
+    } else {
+        delete_post_meta($post_id, 'ic_event_end_date');
+    }
+    if (isset($_POST['ic_event_location'])) {
+        update_post_meta($post_id, 'ic_event_location', sanitize_text_field($_POST['ic_event_location']));
+    }
+    if (isset($_POST['ic_event_description'])) {
+        update_post_meta($post_id, 'ic_event_description', sanitize_text_field($_POST['ic_event_description']));
+    }
+}
+
+// Naptár gomb hozzáadása a thankyou page, és a view-order hez.
+add_action('woocommerce_thankyou', 'add_google_calendar_button');
+add_action('woocommerce_view_order', 'add_google_calendar_button');
+
+function add_google_calendar_button($order_id) {
+    $order = wc_get_order($order_id);
+    $added_google_calendar_button = false;
+
+    foreach ($order->get_items() as $item_id => $item) {
+        $product_id = $item->get_product_id();
+
+        // Lekérjük a termékhez tartozó egyedi mezőket
+        $calendar_title_template = get_post_meta($product_id, 'ic_event_calendar_title', true);
+        $start_date_timestamp = get_post_meta($product_id, 'ic_event_start_date', true);
+        $end_date_timestamp = get_post_meta($product_id, 'ic_event_end_date', true);
+        $event_location = get_post_meta($product_id, 'ic_event_location', true);
+        $event_description = get_post_meta($product_id, 'ic_event_description', true);
+
+        if (!empty($start_date_timestamp)) {
+            $start_date = date('Ymd', $start_date_timestamp);
+            $end_date = !empty($end_date_timestamp) ? date('Ymd', strtotime('+1 day', $end_date_timestamp)) : $start_date;
+
+            // Naptár címének kitöltése
+            $calendar_title = !empty($calendar_title_template) ? str_replace('%s', $item->get_name(), $calendar_title_template) : $item->get_name();
+
+            // Google Calendar URL generálása
+            $event_title = urlencode($calendar_title);
+            $event_details = !empty($event_description) ? urlencode($event_description) : '';
+            $event_location = !empty($event_location) ? urlencode($event_location) : '';
+            $google_calendar_url = "https://www.google.com/calendar/render?action=TEMPLATE&text=$event_title&dates=$start_date/$end_date&details=$event_details&location=$event_location";
+
+            if (!$added_google_calendar_button) {
+                echo '<div class="google-calendar-container">';
+                echo '<p class="google-calendar-title">' . __('Add hozzá az eseményt a naptáradhoz:', 'woocommerce') . '</p>';
+                echo '<a href="' . esc_url($google_calendar_url) . '" target="_blank" class="button alt google-calendar-button" aria-label="' . __('Google naptárhoz adás', 'woocommerce') . '">' . __('Esemény hozzáadása a Google naptárhoz', 'woocommerce') . '</a>';
+                echo '</div>';
+                $added_google_calendar_button = true;
+            }
+        }
+    }
+}
+
+add_action('woocommerce_thankyou', 'move_google_calendar_button', 5);
+function move_google_calendar_button($order_id) {
+    remove_action('woocommerce_thankyou', 'add_google_calendar_button');
+    add_action('woocommerce_order_details_after_order_table', 'add_google_calendar_button', 10);
+}
