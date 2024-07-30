@@ -1,0 +1,230 @@
+// másold be a functions.php fájlba (Child theme!), vagy egy speciális code snippets pluginba, például FluentSnippets
+// Ez a kód a termékek esetében a szerkesztő felületen hozzáad egy Extra termékek nevű select metát, ahol egy vagy több woo terméket tudsz kiválasztani. A kiválasztott termékek az adott termék kosárhoz adása single oldalon megjeleníti a kosárhoz adás gomb felett közvetlenül
+// Beállítható hogy mennyi ilyet lehet bejelölni, és a kosárban adom gomb megnyomásakor, ezeket az extra termékeket is hozzáadja. a Kódban egyszerűen definiálható, hogy mennyi értéket lehet bejelölni, és hogyna jelenítse meg a termékeket.
+// Példa kép: https://prnt.sc/cb36zB5X4zM0
+// Példa kép2 : https://prnt.sc/4-Ilf9Ss_oIw
+// a kód tartaalmaz: PHP, CSS, JS (inline)
+// Definiálható értékek a kódban: 
+    $max_selected_products = 2; // Itt adhatod meg, hogy mennyi terméket lehet maximum bejelölni
+    $display_featured_image = true; // kiemelt kép megjelenítése
+    $display_product_name = true; // termék név megjelenítése
+    $display_product_price = true; // termék ár megjelenítése
+    $display_short_description = false; // termék rövid leírás megjelenítése
+//
+//
+//
+
+
+// Egyedi meta mező létrehozása
+function add_custom_product_meta_field() {
+    global $post;
+    ?>
+    <div class="options_group">
+        <p class="form-field custom_product_meta_field">
+            <label for="extra_products"><?php esc_html_e('Extra termékek', 'woocommerce'); ?></label>
+            <select class="wc-product-search" multiple="multiple" style="width: 50%;" id="extra_products" name="extra_products[]" data-placeholder="<?php esc_attr_e('Válasszon termékeket', 'woocommerce'); ?>" data-action="woocommerce_json_search_products_and_variations">
+                <?php
+                $extra_products = get_post_meta($post->ID, '_extra_products', true);
+                if (!empty($extra_products)) {
+                    $extra_products = explode(',', $extra_products);
+                    foreach ($extra_products as $product_id) {
+                        $product = wc_get_product($product_id);
+                        if (is_object($product)) {
+                            echo '<option value="' . esc_attr($product_id) . '" selected="selected">' . esc_html($product->get_name()) . '</option>';
+                        }
+                    }
+                }
+                ?>
+            </select>
+        </p>
+    </div>
+    <?php
+    wp_nonce_field('save_extra_products_meta', 'extra_products_meta_nonce');
+}
+add_action('woocommerce_product_options_pricing', 'add_custom_product_meta_field');
+
+// Egyedi meta mező mentése
+function save_custom_product_meta_field($post_id) {
+    if (!isset($_POST['extra_products_meta_nonce']) || !wp_verify_nonce($_POST['extra_products_meta_nonce'], 'save_extra_products_meta')) {
+        return;
+    }
+
+    if (isset($_POST['extra_products'])) {
+        $extra_products = array_map('sanitize_text_field', $_POST['extra_products']);
+        update_post_meta($post_id, '_extra_products', implode(',', $extra_products));
+    } else {
+        delete_post_meta($post_id, '_extra_products');
+    }
+}
+add_action('woocommerce_process_product_meta', 'save_custom_product_meta_field');
+
+// Extra termékek megjelenítése a termék single oldalon, a kosárhoz adás gombnál
+function display_extra_products_on_single_product_page() {
+    global $post;
+    $max_selected_products = 2; // Define the maximum number of extra products that can be selected
+    $display_featured_image = true;
+    $display_product_name = true;
+    $display_product_price = true;
+    $display_short_description = false;
+
+    $extra_products = get_post_meta($post->ID, '_extra_products', true);
+
+    if (!empty($extra_products)) {
+        $extra_products = explode(',', $extra_products);
+        echo '<div class="extra-products-container"><h3>' . esc_html__('Extra termékek', 'woocommerce') . '</h3><div class="extra-products-grid">';
+
+        foreach ($extra_products as $product_id) {
+            $product = wc_get_product($product_id);
+            if (is_object($product)) {
+                echo '<label class="extra-product">';
+                echo '<input type="checkbox" name="extra_products[]" value="' . esc_attr($product_id) . '" />';
+                echo '<div class="extra-product-content">';
+                if ($display_featured_image) {
+                    echo '<div class="extra-product-image">' . $product->get_image('thumbnail') . '</div>';
+                }
+                if ($display_product_name) {
+                    echo '<p class="extra-product-title">' . esc_html($product->get_name()) . '</p>';
+                }
+                if ($display_product_price) {
+                    echo '<p class="extra-product-price">' . $product->get_price_html() . '</p>';
+                }
+                if ($display_short_description) {
+                    echo '<p class="extra-product-description">' . esc_html($product->get_short_description()) . '</p>';
+                }
+                echo '</div>';
+                echo '</label>';
+            }
+        }
+
+        echo '</div></div>';
+
+        // Inline CSS és JS
+        echo '<style>
+            .extra-products-container {
+                margin-top: 20px;
+            }
+            .extra-products-grid {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 20px;
+                justify-content: flex-start;
+            }
+            .extra-product {
+                flex: 1 1 calc(33.333% - 20px);
+                max-width: calc(33.333% - 20px);
+                box-sizing: border-box;
+                border: 1px solid #e1e1e1;
+                padding: 10px;
+                text-align: center;
+                background-color: #f9f9f9;
+                cursor: pointer;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+            .extra-product input[type="checkbox"] {
+                display: none;
+            }
+            .extra-product-content {
+                pointer-events: none;
+            }
+            .extra-product-image img {
+                width: 100px;
+                height: auto;
+            }
+            .extra-product-title {
+                font-size: 14px;
+                font-weight: bold;
+                margin: 10px 0 5px;
+            }
+            .extra-product-price {
+                font-size: 14px;
+                color: #333;
+            }
+            .extra-product-description {
+                font-size: 12px;
+                color: #666;
+            }
+            .extra-product input[type="checkbox"]:checked + .extra-product-content {
+                border: 2px solid #007cba;
+            }
+            @media (max-width: 768px) {
+                .extra-product {
+                    flex: 1 1 calc(50% - 20px);
+                    max-width: calc(50% - 20px);
+                }
+            }
+        </style>';
+        echo '<script>
+            document.addEventListener("DOMContentLoaded", function() {
+                const checkboxes = document.querySelectorAll(".extra-product input[type=\'checkbox\']");
+                const maxSelected = ' . $max_selected_products . ';
+                
+                checkboxes.forEach(checkbox => {
+                    checkbox.addEventListener("change", function() {
+                        const selected = document.querySelectorAll(".extra-product input[type=\'checkbox\']:checked").length;
+                        if (selected >= maxSelected) {
+                            checkboxes.forEach(cb => {
+                                if (!cb.checked) {
+                                    cb.disabled = true;
+                                }
+                            });
+                        } else {
+                            checkboxes.forEach(cb => {
+                                cb.disabled = false;
+                            });
+                        }
+                    });
+                });
+            });
+        </script>';
+    }
+}
+add_action('woocommerce_before_add_to_cart_button', 'display_extra_products_on_single_product_page');
+
+// Extra termékek hozzáadása a kosárhoz
+function add_extra_products_to_cart($cart_item_data, $product_id) {
+    if (isset($_POST['extra_products']) && !empty($_POST['extra_products'])) {
+        foreach ($_POST['extra_products'] as $extra_product_id) {
+            $cart_item_data['extra_products'][] = sanitize_text_field($extra_product_id);
+        }
+    }
+    return $cart_item_data;
+}
+add_filter('woocommerce_add_cart_item_data', 'add_extra_products_to_cart', 10, 2);
+
+// Extra termékek feltüntetése a kosár oldalon (+pénztár)
+function display_extra_products_in_cart($item_data, $cart_item) {
+    $extra_service_label = __('Extra szolgáltatás:', 'woocommerce');
+    if (isset($cart_item['extra_products']) && !empty($cart_item['extra_products'])) {
+        $extra_product_names = [];
+        foreach ($cart_item['extra_products'] as $extra_product_id) {
+            $product = wc_get_product($extra_product_id);
+            $extra_product_names[] = $product->get_name();
+        }
+        $item_data[] = array(
+            'name' => esc_html($extra_service_label),
+            'value' => esc_html(implode(', ', $extra_product_names)),
+        );
+    }
+    return $item_data;
+}
+add_filter('woocommerce_get_item_data', 'display_extra_products_in_cart', 10, 2);
+
+// Kosár összegző frissítése
+function update_cart_total_with_extra_products($cart_object) {
+    if (!WC()->session->__isset("reload_checkout")) {
+        foreach ($cart_object->get_cart() as $key => $value) {
+            if (isset($value['extra_products']) && !empty($value['extra_products'])) {
+                foreach ($value['extra_products'] as $extra_product_id) {
+                    $product = wc_get_product($extra_product_id);
+                    $price = $product->get_price();
+                    $value['data']->set_price($value['data']->get_price() + $price);
+                }
+            }
+        }
+    }
+}
+add_action('woocommerce_before_calculate_totals', 'update_cart_total_with_extra_products');
+
+
