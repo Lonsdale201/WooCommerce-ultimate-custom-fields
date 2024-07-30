@@ -11,7 +11,8 @@
     $display_product_price = true; // termék ár megjelenítése
     $display_short_description = false; // termék rövid leírás megjelenítése
 //
-//
+// továbbá lentebb az extra termékek adókalkulációját itt írhatod át: $taxable = true; // Változó az adó meghatározására
+// Az extra termék szöveg megjelenítésének átírása itt lehet:  $extra_service_label = __('Extra szolgáltatás:', 'woocommerce');
 //
 
 
@@ -56,7 +57,6 @@ function save_custom_product_meta_field($post_id) {
         delete_post_meta($post_id, '_extra_products');
     }
 }
-add_action('woocommerce_process_product_meta', 'save_custom_product_meta_field');
 
 // Extra termékek megjelenítése a termék single oldalon, a kosárhoz adás gombnál
 function display_extra_products_on_single_product_page() {
@@ -185,9 +185,7 @@ add_action('woocommerce_before_add_to_cart_button', 'display_extra_products_on_s
 // Extra termékek hozzáadása a kosárhoz
 function add_extra_products_to_cart($cart_item_data, $product_id) {
     if (isset($_POST['extra_products']) && !empty($_POST['extra_products'])) {
-        foreach ($_POST['extra_products'] as $extra_product_id) {
-            $cart_item_data['extra_products'][] = sanitize_text_field($extra_product_id);
-        }
+        $cart_item_data['extra_products'] = array_map('sanitize_text_field', $_POST['extra_products']);
     }
     return $cart_item_data;
 }
@@ -211,20 +209,25 @@ function display_extra_products_in_cart($item_data, $cart_item) {
 }
 add_filter('woocommerce_get_item_data', 'display_extra_products_in_cart', 10, 2);
 
-// Kosár összegző frissítése
-function update_cart_total_with_extra_products($cart_object) {
-    if (!WC()->session->__isset("reload_checkout")) {
-        foreach ($cart_object->get_cart() as $key => $value) {
-            if (isset($value['extra_products']) && !empty($value['extra_products'])) {
-                foreach ($value['extra_products'] as $extra_product_id) {
-                    $product = wc_get_product($extra_product_id);
+// Extra termékek díjának hozzáadása a kosárhoz
+function add_extra_products_fee($cart) {
+    if (is_admin() && !defined('DOING_AJAX')) {
+        return;
+    }
+
+    $taxable = true; // Változó az adó meghatározására
+
+    foreach ($cart->get_cart() as $cart_item_key => $cart_item) {
+        if (isset($cart_item['extra_products']) && !empty($cart_item['extra_products'])) {
+            foreach ($cart_item['extra_products'] as $extra_product_id) {
+                $product = wc_get_product($extra_product_id);
+                if ($product) {
                     $price = $product->get_price();
-                    $value['data']->set_price($value['data']->get_price() + $price);
+                    $fee_name = sprintf(__('Extra termék: %s', 'woocommerce'), $product->get_name());
+                    $cart->add_fee($fee_name, $price, $taxable);
                 }
             }
         }
     }
 }
-add_action('woocommerce_before_calculate_totals', 'update_cart_total_with_extra_products');
-
-
+add_action('woocommerce_cart_calculate_fees', 'add_extra_products_fee', 10, 1);
