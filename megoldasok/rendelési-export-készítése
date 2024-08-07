@@ -1,0 +1,130 @@
+// másold be a functions.php fájlba (Child theme!), vagy egy speciális code snippets pluginba, például FluentSnippets
+// Ez a kód automatikusan létrehoz rendelés leadásakor, egy wmexport nevű mappát a wp-content/uploads mappádon belülre, továbbá egy előre beállított .htaccess, és index fájl-t mellé. Minden alkalommal, amikor rendelést adnak le, egy xls formátumú fájlt készít neked, előre paraméterezett adatokkal. 
+// Ha van olyan elem amire nincs szükség az exportban, keresd meg a "Konfigurációs beállítások" komment alatti részt, és írd át a true-t false értékre. Alatta cseréld fel az oslzopoknál a sorrendet.
+
+
+// Mappa létrehozása és hozzáférés korlátozása
+function create_wmexport_directory() {
+    $upload_dir = wp_upload_dir();
+    $export_dir = $upload_dir['basedir'] . '/wmexport';
+    
+    if (!file_exists($export_dir)) {
+        wp_mkdir_p($export_dir);
+        
+        // .htaccess létrehozása a hozzáférés korlátozásához
+        $htaccess_content = "Order deny,allow\nDeny from all\n";
+        file_put_contents($export_dir . '/.htaccess', $htaccess_content);
+
+        // index.html létrehozása
+        $index_content = "<html><body><h1>Access Denied</h1></body></html>";
+        file_put_contents($export_dir . '/index.html', $index_content);
+    }
+}
+add_action('init', 'create_wmexport_directory');
+add_action('woocommerce_thankyou', 'custom_export_order_to_xls', 10, 1);
+
+function custom_export_order_to_xls($order_id) {
+    if (!$order_id) return;
+
+    $order = wc_get_order($order_id);
+    $order_date = $order->get_date_created()->date('Y-m-d_H-i-s');
+
+    // Konfigurációs beállítások, írd át false ra amire nincs szükséged
+    $columns = [
+        'rendelesi_azonosito' => true,
+        'rendelesi_datum' => true,
+        'szamlazasi_email' => true,
+        'szamlazasi_vezeteknev' => true,
+        'szamlazasi_keresztnev' => true,
+        'rendeles_teljes_osszege_netto' => true,
+        'rendeles_teljes_osszege_brutto' => true,
+        'vasarloi_megjegyzes' => true,
+        'fizetesi_mod' => true,
+        'szallitasi_mod' => true,
+    ];
+
+    // Oszlopok sorrendje, egyszerűen módosítsd a sorrendet ha szükséges.
+    $order_columns = [
+        'rendelesi_azonosito',
+        'rendelesi_datum',
+        'szamlazasi_email',
+        'szamlazasi_vezeteknev',
+        'szamlazasi_keresztnev',
+        'rendeles_teljes_osszege_netto',
+        'rendeles_teljes_osszege_brutto',
+        'vasarloi_megjegyzes',
+        'szallitasi_mod',
+        'fizetesi_mod',
+    ];
+
+    // Mappa útvonal
+    $upload_dir = wp_upload_dir();
+    $export_dir = $upload_dir['basedir'] . '/wmexport';
+
+    // Fájl név
+    $file_name = $export_dir . '/' . $order_date . '.xls';
+
+    // XLS fájl tartalma
+    $file_content = "";
+    $headers = [];
+    $data = [];
+
+    foreach ($order_columns as $column) {
+        if ($columns[$column]) {
+            switch ($column) {
+                case 'rendelesi_azonosito':
+                    $headers[] = 'Rendelési azonosító';
+                    $data[] = $order_id;
+                    break;
+                case 'rendelesi_datum':
+                    $headers[] = 'Rendelési dátum';
+                    $data[] = $order->get_date_created()->date('Y-m-d');
+                    break;
+                case 'szamlazasi_email':
+                    $headers[] = 'Számlázási email cím';
+                    $data[] = $order->get_billing_email();
+                    break;
+                case 'szamlazasi_vezeteknev':
+                    $headers[] = 'Számlázási vezetéknév';
+                    $data[] = $order->get_billing_last_name();
+                    break;
+                case 'szamlazasi_keresztnev':
+                    $headers[] = 'Számlázási keresztnév';
+                    $data[] = $order->get_billing_first_name();
+                    break;
+                case 'rendeles_teljes_osszege_netto':
+                    $headers[] = 'Rendelés teljes összege (nettó)';
+                    $data[] = $order->get_total() - $order->get_total_tax();
+                    break;
+                case 'rendeles_teljes_osszege_brutto':
+                    $headers[] = 'Rendelés teljes összege (bruttó)';
+                    $data[] = $order->get_total();
+                    break;
+                case 'vasarloi_megjegyzes':
+                    $headers[] = 'Vásárlói megjegyzés';
+                    $data[] = $order->get_customer_note();
+                    break;
+                case 'fizetesi_mod':
+                    $headers[] = 'Fizetési mód';
+                    $data[] = $order->get_payment_method_title();
+                    break;
+                case 'szallitasi_mod':
+                    $shipping_methods = $order->get_shipping_methods();
+                    $shipping_method_names = [];
+                    foreach ($shipping_methods as $shipping_method) {
+                        $shipping_method_names[] = $shipping_method->get_method_title();
+                    }
+                    $headers[] = 'Szállítási mód';
+                    $data[] = implode(', ', $shipping_method_names);
+                    break;
+            }
+        }
+    }
+
+    // Fejléc sor hozzáadása
+    $file_content .= implode("\t", $headers) . "\n";
+    // Adat sor hozzáadása
+    $file_content .= implode("\t", $data) . "\n";
+
+    file_put_contents($file_name, $file_content);
+}
