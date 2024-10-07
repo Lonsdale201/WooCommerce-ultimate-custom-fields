@@ -1,0 +1,71 @@
+// másold be a functions.php fájlba (Child theme!), vagy egy speciális code snippets pluginba, például FluentSnippets
+// ez a kód a "További információk" termékfülön belüli attributum táblázatot egészíti ki. A felsorolt értékeket, állítsd false-ra ha valamit nem akarsz megjeleníteni.
+
+// támogatott extra  adatok: Sku, kategória, címke, státusz, szállítási osztály
+function add_custom_attributes_to_product_attributes( $product_attributes, $product ) {
+
+    // Írd át false-ra amire nincs szükséged
+    $display_settings = array(
+        'show_sku'             => true,
+        'show_categories'      => true,
+        'show_tags'            => true,
+        'show_stock_status'    => true,
+        'show_shipping_class'  => true,
+    );
+
+    if ( isset($display_settings['show_sku']) && $display_settings['show_sku'] ) {
+        $sku = $product->get_sku();
+        if ( $sku ) {
+            $product_attributes['sku'] = array(
+                'label' => __( 'SKU', 'woocommerce' ),
+                'value' => esc_html( $sku ),
+            );
+        }
+    }
+
+    if ( isset($display_settings['show_categories']) && $display_settings['show_categories'] ) {
+        $categories = wc_get_product_category_list( $product->get_id(), ', ' );
+        if ( $categories ) {
+            $product_attributes['categories'] = array(
+                'label' => __( 'Categories', 'woocommerce' ),
+                'value' => wp_kses_post( $categories ),
+            );
+        }
+    }
+
+    if ( isset($display_settings['show_tags']) && $display_settings['show_tags'] ) {
+        $tags = wc_get_product_tag_list( $product->get_id(), ', ' );
+        if ( $tags ) {
+            $product_attributes['tags'] = array(
+                'label' => __( 'Tags', 'woocommerce' ),
+                'value' => wp_kses_post( $tags ),
+            );
+        }
+    }
+
+    if ( isset($display_settings['show_stock_status']) && $display_settings['show_stock_status'] ) {
+        if ( $product->is_in_stock() ) {
+            $stock_status = __( 'In stock', 'woocommerce' );
+        } else {
+            $stock_status = __( 'Out of stock', 'woocommerce' );
+        }
+
+        $product_attributes['stock_status'] = array(
+            'label' => __( 'Stock Status', 'woocommerce' ),
+            'value' => esc_html( $stock_status ),
+        );
+    }
+
+    if ( isset($display_settings['show_shipping_class']) && $display_settings['show_shipping_class'] ) {
+        $shipping_class = $product->get_shipping_class();
+        if ( $shipping_class ) {
+            $product_attributes['shipping_class'] = array(
+                'label' => __( 'Szállítási osztály', 'woocommerce' ),
+                'value' => esc_html( $shipping_class ),
+            );
+        }
+    }
+
+    return $product_attributes;
+}
+add_filter( 'woocommerce_display_product_attributes', 'add_custom_attributes_to_product_attributes', 10, 2 );
