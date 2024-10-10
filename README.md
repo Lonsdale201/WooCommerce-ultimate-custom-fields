@@ -27,4 +27,4 @@ Itt többnyire olyan példák vannak, amik az egyedi mezők kombinációjával k
 
 ### Aktivitás
 
-Ha szeretnéd megnézni milyen új kódok kerültek fel, [ide kattintva tudod a legkönnyebben megnézni]([https://www.google.com](https://github.com/Lonsdale201/WooCommerce-ultimate-custom-fields/activity))
+Ha szeretnéd megnézni milyen új kódok kerültek fel, [ide kattintva tudod a legkönnyebben megnézni](https://github.com/Lonsdale201/WooCommerce-ultimate-custom-fields/activity)
