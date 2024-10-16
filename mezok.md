@@ -678,7 +678,7 @@ add_action('woocommerce_process_product_meta', 'save_custom_product_meta_field')
 ```
 
 ### Checkbox a termék Options részhez
-(ott ahol a digitális és Virtuális chechkboxok jelennek meg)
+(ott ahol a digitális és Virtuális jelölőnégyzetek jelennek meg)
 
 ```
 // Új checkbox speciálisan a termék beállításokhoz
