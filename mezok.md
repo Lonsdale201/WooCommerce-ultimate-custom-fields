@@ -420,6 +420,35 @@ function save_custom_date_field( $post_id ) {
 }
 ```
 
+### Checkbox a termék Options részhez
+(ott ahol a digitális és Virtuális jelölőnégyzetek jelennek meg)
+
+```
+// Új checkbox speciálisan a termék beállításokhoz
+add_filter('product_type_options', function ($product_type_options) {
+    // Jelenlegi termék metaadatának lekérése a WooCommerce API-val
+    $product = wc_get_product(get_the_ID());
+    $teszt = $product ? $product->get_meta('_teszt') : 'no';
+
+    // Checkbox beállítások
+    $product_type_options['teszt_checkbox'] = [
+        'id'            => '_teszt',
+        'wrapper_class' => 'show_if_simple',
+        'label'         => __('Teszt', 'woocommerce'),
+        'default'       => $teszt === 'yes' ? 'yes' : 'no',
+        'description'   => __('Ez engedélyezi a teszt-et.', 'woocommerce'),
+    ];
+    return $product_type_options;
+});
+
+// Mentés
+add_action('woocommerce_admin_process_product_object', function ($product) {
+    $teszt_value = isset($_POST["_teszt"]) ? "yes" : "no";
+    $product->update_meta_data("_teszt", sanitize_text_field($teszt_value));
+});
+```
+
+
 ## WooCommerce tab hookok
 
 Az eddigi példában szereplő kódokat mind az általános tabfülbe helyeztük el. Lehetőség van bármelyik meglévőbe átrakni, sőt újakat is készíthetünk. A tabfül hookok a következők:
@@ -677,30 +706,3 @@ function save_custom_product_meta_field($post_id) {
 add_action('woocommerce_process_product_meta', 'save_custom_product_meta_field');
 ```
 
-### Checkbox a termék Options részhez
-(ott ahol a digitális és Virtuális jelölőnégyzetek jelennek meg)
-
-```
-// Új checkbox speciálisan a termék beállításokhoz
-add_filter('product_type_options', function ($product_type_options) {
-    // Jelenlegi termék metaadatának lekérése a WooCommerce API-val
-    $product = wc_get_product(get_the_ID());
-    $teszt = $product ? $product->get_meta('_teszt') : 'no';
-
-    // Checkbox beállítások
-    $product_type_options['teszt_checkbox'] = [
-        'id'            => '_teszt',
-        'wrapper_class' => 'show_if_simple',
-        'label'         => __('Teszt', 'woocommerce'),
-        'default'       => $teszt === 'yes' ? 'yes' : 'no',
-        'description'   => __('Ez engedélyezi a teszt-et.', 'woocommerce'),
-    ];
-    return $product_type_options;
-});
-
-// Mentés
-add_action('woocommerce_admin_process_product_object', function ($product) {
-    $teszt_value = isset($_POST["_teszt"]) ? "yes" : "no";
-    $product->update_meta_data("_teszt", sanitize_text_field($teszt_value));
-});
-```
