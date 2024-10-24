@@ -116,3 +116,49 @@ function display_custom_textarea_field() {
     }
 }
 ```
+
+## Textarea mező létrehozása, mentése, speciális frontend megjelenítés
+Ez a változat szintén tisztítja a bementelt, azaz a html nem engedélyezett, azonban ha a textarea mezőbe beírt szövegekben van sortörés, akkor a frontend oldalon ennek megfelelően formzáva jelenítjük meg.
+
+```
+add_action('woocommerce_product_options_general_product_data', 'custom_product_textarea_field');
+function custom_product_textarea_field() {
+    woocommerce_wp_textarea_input(
+        array(
+            'id' => '_custom_textarea_field',
+            'label' => __('Egyedi textarea mező', 'woocommerce'), 
+            'placeholder' => __('Írd be az egyedi szöveget', 'woocommerce'), 
+            'desc_tip' => 'true', 
+            'description' => __('Adj meg egy hosszabb egyedi értéket a termékhez.', 'woocommerce'), 
+        )
+    );
+}
+
+add_action('woocommerce_process_product_meta', 'save_custom_textarea_field');
+function save_custom_textarea_field($post_id) {
+    $custom_field_value = isset($_POST['_custom_textarea_field']) ? sanitize_textarea_field($_POST['_custom_textarea_field']) : '';
+    
+    if (!empty($custom_field_value)) {
+        update_post_meta($post_id, '_custom_textarea_field', esc_attr($custom_field_value));
+    } else {
+        delete_post_meta($post_id, '_custom_textarea_field'); 
+    }
+}
+
+add_action('woocommerce_before_add_to_cart_button', 'display_custom_textarea_field');
+function display_custom_textarea_field() {
+    global $post;
+
+    $custom_field_value = get_post_meta($post->ID, '_custom_textarea_field', true);
+
+    if (!empty($custom_field_value)) {
+        // A megjelenítendő szöveg sorokra tördelése
+        $lines = explode("\n", esc_html($custom_field_value));
+        echo '<div class="custom-field-textarea">';
+        foreach ($lines as $line) {
+            echo '<p>' . $line . '</p>';
+        }
+        echo '</div>';
+    }
+}
+```
