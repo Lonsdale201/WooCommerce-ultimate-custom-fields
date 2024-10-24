@@ -45,8 +45,8 @@ Hook használata: A **woocommerce_product_options_general_product_data** hookkal
 
 ### Mező mentése
 
-A következő fontos lépés hogy biztosítsuk a mező mentését, és annak kezelését. Ehhez szintén egy WC áltla biztosított Hook ot tudunk használni *woocommerce_process_product_meta* a *sanitize_text_field* segítségével tisztítjuk a mezőt mentés előtt.
-Ha a mező nem tartalmaz értéket, tehát üres marad, akkor töröljük a meta adatot. az *update_post_meta* gyári WordPress funkció ami a meta mentésére szolgál. Az első érték a termék azonosítója (post id), a második az áltlaunk látrehozott egyedi mező azonosítója, a harmadik pedig annak értéke.
+A következő fontos lépés hogy biztosítsuk a mező mentését, és annak kezelését. Ehhez szintén egy WC áltla biztosított Hook ot tudunk használni ***woocommerce_process_product_meta*** a ***sanitize_text_field*** segítségével tisztítjuk a mezőt mentés előtt.
+Ha a mező nem tartalmaz értéket, tehát üres marad, akkor töröljük a meta adatot. Az ***update_post_meta*** gyári WordPress funkció ami a meta mentésére szolgál. Az első érték a termék azonosítója (post id), a második az áltlaunk látrehozott egyedi mező azonosítója, a harmadik pedig annak értéke.
 
 ```
 
