@@ -43,6 +43,13 @@ Hook használata: A **woocommerce_product_options_general_product_data** hookkal
 * **desc_tip:** Tooltip engedélyezése
 * **description:** Ez pedig a tooltip tartalma
 
+Az egyes tabfülekbe való elhelyezésnél az alábbi Hook-okat tudod használni:
+
+* woocommerce_product_options_general_product_data (általános tab)
+* woocommerce_product_options_dimensions (Szállítás tab)
+* woocommerce_product_options_inventory_product_data (készlet)
+* woocommerce_product_options_advanced (haladó)
+
 ### Mező mentése
 
 A következő fontos lépés hogy biztosítsuk a mező mentését, és annak kezelését. Ehhez szintén egy WC áltla biztosított Hook ot tudunk használni ***woocommerce_process_product_meta*** a ***sanitize_text_field*** segítségével tisztítjuk a mezőt mentés előtt.
