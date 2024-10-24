@@ -1,4 +1,4 @@
-## WooCommerce egyedi mezők
+## WooCommerce egyedi mezők - általános leírás
 
 A WooCommerce termékekhez létrehozhatunk saját mezőket. Ezt megtehetjük számos bővítménnyel (Advanced Custom Fields, JetEngine stb), vagy kód segítségével is. Az egyedi mezőket felhasználhatjuk, hogy további extra adatokat tudjunk társítani az adott termékekhez. A WooCommerce API segítségével 
 könnyedén létrehozhatunk további mezőket, sőt meghatározhatjuk melyik terméktabfülhöz rendelje hozzá. Az APi segítségével létrehozhatunk új füleket is, új terméktípust is, és az egyedi mezőniket kondícionálisan akár ezekbe is besorolhatjuk. 
@@ -62,6 +62,30 @@ function save_custom_product_text_field($post_id) {
         update_post_meta($post_id, '_custom_text_field', esc_attr($custom_field_value));
     } else {
         delete_post_meta($post_id, '_custom_text_field'); // Ha üres, töröljük az adatot
+    }
+}
+```
+
+### Mező megjelenítése
+Gyakran az egyedi mezőnk extra termék információként szolgál, ezért annak adatát megakarjuk jeleníteni a termék adatlapján. Két gyakori formája is van. Az egyik egy fix hook segítségével, a másik shortcode használata. A Shortcode akkor hasznos, ha olyan eszközt hasznákunk, mint például Elementor, vagy Bricks, aminek a segítségével saját sablont tudunk létrehozni a termékeknek, és így könnyedén elhelyezhetjük a megjelenítendő adatot, bárhol a termék adatlapon belül.
+
+- Példa 1 gyári hook használatával a mező megjelenítése a frontend-en.
+
+A legfontosabb, hogy kiválasszuk a megfelelő elhelyezésre/megjelenítésre szolgáló hook-ot.
+Vizuális hook segédlet: https://www.businessbloomer.com/woocommerce-visual-hook-guide-single-product-page/
+A kódban a ***woocommerce_before_add_to_cart_button*** használjuk, amely a meta tartalmát a kosárhoz adás gomb előtt fogja megjeleníteni.
+
+```
+add_action('woocommerce_before_add_to_cart_button', 'display_custom_product_text_field');
+
+function display_custom_product_text_field() {
+    global $post;
+
+    // Az egyedi mező értékének lekérése
+    $custom_field_value = get_post_meta($post->ID, '_custom_text_field', true);
+
+    if (!empty($custom_field_value)) {
+        echo '<p class="custom-field-text">' . esc_html($custom_field_value) . '</p>';
     }
 }
 ```
