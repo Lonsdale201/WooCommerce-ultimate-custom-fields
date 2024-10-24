@@ -42,3 +42,4 @@ function display_custom_number_field() {
         echo '<p class="custom-field-number">' . esc_html($custom_field_value) . '</p>';
     }
 }
+```
